@@ -157,75 +157,86 @@ begin
   // 2. SQL Services
   mInStream := TMemoryStream.Create ;
   mOutStream := TMemoryStream.Create ;
-  mSize := AContext.Connection.IOHandler.ReadInt32( False ) ;
-  AContext.Connection.IOHandler.ReadStream( mInStream, mSize, False ) ;
-  mInStream.Position := 0 ;
-  // Client will Compress the stream, so Decompress Stream here !
-  dgDeCompressStream( mInStream,mOutStream ) ;
-  mOutStream.Position := 0 ;
-  mCommand := UpperCase( dgStreamReadLine( mOutStream ) ) ;
-  mCName := UpperCase( dgStreamReadLine( mOutStream ) ) ;
+  Try
+    mSize := AContext.Connection.IOHandler.ReadInt32( False ) ;
+    AContext.Connection.IOHandler.ReadStream( mInStream, mSize, False ) ;
+    mInStream.Position := 0 ;
+    // Client will Compress the stream, so Decompress Stream here !
 
-  mArgsStream := TMemoryStream.Create ;
-  dgCopyStream( mOutStream, mArgsStream ) ;
+    dgDeCompressStream( mInStream,mOutStream ) ;
+    mOutStream.Position := 0 ;
+    mCommand := UpperCase( dgStreamReadLine( mOutStream ) ) ;
+    mCName := UpperCase( dgStreamReadLine( mOutStream ) ) ;
 
-  mArgsStream.Position := 0 ;
-  AddLog( 'Command : ' + mCommand + '  CNAME : ' + mCName, 2 ) ;
-
-  if ( mCommand = 'SYSTEM' ) and ( mCName = 'LOGIN' ) then
-    begin
-    mArgsStream.Read( mByte, 1 ) ;
-    mArgsStream.Read( mSize, SizeOf( mSize ) ) ;
-    mAlias := UpperCase( dgStreamToStr( mArgsStream ) ) ;
-    mKey := dgStreamToStr( mArgsStream ) ;
-    AddLog( 'Client Key ( ' + mAlias + ' ) : ' + mKey, 2 ) ;
-    mAKey := GetAliasKey( mAlias ) ;
-    AddLog( 'Alias  Key ( ' + mAlias + ' ) : ' + mAKey, 2 ) ;
-    if mKey = mAKey then
-      begin
-      TMyContext( AContext.Data ).Login := 1 ;
-      mInStream.Clear ;
-      mOutStream.Clear ;
-      mNow := Now ;
-      dgDateTimeToStream( mNow , mInStream ) ;
-      mInStream.Position := 0 ;
-      dgCompressStream( mInStream, mOutStream ) ;
-      mSize := mOutStream.Size ;
-      mOutStream.Position := 0 ;
-      AContext.Connection.IOHandler.Write( mSize , False ) ;
-      AContext.Connection.IOHandler.Write( mOutStream, mSize, False ) ;
-      AContext.Connection.IOHandler.WriteBufferClear ;
-      AddLog( 'Login OK ! and ' + IntToStr( mSize ) + ' bytes of data back to client !' ,2  ) ;
+    mArgsStream := TMemoryStream.Create ;
+    Try
+      dgCopyStream( mOutStream, mArgsStream ) ;
+      mArgsStream.Position := 0 ;
+      AddLog( 'Command : ' + mCommand + '  CNAME : ' + mCName, 2 ) ;
+      if ( mCommand = 'SYSTEM' ) and ( mCName = 'LOGIN' ) then
+        begin
+        mArgsStream.Read( mByte, 1 ) ;
+        mArgsStream.Read( mSize, SizeOf( mSize ) ) ;
+        mAlias := UpperCase( dgStreamToStr( mArgsStream ) ) ;
+        mKey := dgStreamToStr( mArgsStream ) ;
+        AddLog( 'Client Key ( ' + mAlias + ' ) : ' + mKey, 2 ) ;
+        mAKey := GetAliasKey( mAlias ) ;
+        AddLog( 'Alias  Key ( ' + mAlias + ' ) : ' + mAKey, 2 ) ;
+        if mKey = mAKey then
+          begin
+          TMyContext( AContext.Data ).Login := 1 ;
+          mInStream.Clear ;
+          mOutStream.Clear ;
+          mNow := Now ;
+          dgDateTimeToStream( mNow , mInStream ) ;
+          mInStream.Position := 0 ;
+          dgCompressStream( mInStream, mOutStream ) ;
+          mSize := mOutStream.Size ;
+          mOutStream.Position := 0 ;
+          AContext.Connection.IOHandler.Write( mSize , False ) ;
+          AContext.Connection.IOHandler.Write( mOutStream, mSize, False ) ;
+          AContext.Connection.IOHandler.WriteBufferClear ;
+          AddLog( 'Login OK ! and ' + IntToStr( mSize ) + ' bytes of data back to client !' ,2  ) ;
+          end
+      else
+        begin
+        TMyContext( AContext.Data ).Login := 0 ;
+        AddLog( 'Login Fail ! Key InValid !', 2 ) ;
+        AContext.Connection.Disconnect ;
+        end ;
       end
     else
       begin
-      TMyContext( AContext.Data ).Login := 0 ;
-      AddLog( 'Login Fail ! Key InValid !', 2 ) ;
-      AContext.Connection.Disconnect ;
-      end ;
-    end
-  else
-    begin
-    if TMyContext( AContext.Data ).Login = 1 then
-      begin
-      mOutStream.Clear ;
-      mResultStream := TMemoryStream.Create ;
-      InternalServices( mCommand, mCName, mArgsStream, mResultStream ) ;
-      mResultStream.Position := 0 ;
-      dgCompressStream( mResultStream ,mOutStream ) ;
-      mOutStream.Position := 0 ;
-      mSize := mOutStream.Size ;
-      AContext.Connection.IOHandler.Write( mSize,False ) ;
-      AContext.Connection.IOHandler.Write( mOutStream, mSize, False ) ;
-      AContext.Connection.IOHandler.WriteBufferClear ;
-      mResultStream.Free ;
-      end
-    else
-      begin
-      AddLog( 'Not Valid Login !', 2 ) ;
-      AContext.Connection.DisConnect ;
+      if TMyContext( AContext.Data ).Login = 1 then
+        begin
+        mOutStream.Clear ;
+        mResultStream := TMemoryStream.Create ;
+        Try
+          InternalServices( mCommand, mCName, mArgsStream, mResultStream ) ;
+          mResultStream.Position := 0 ;
+          dgCompressStream( mResultStream ,mOutStream ) ;
+          mOutStream.Position := 0 ;
+          mSize := mOutStream.Size ;
+          AContext.Connection.IOHandler.Write( mSize,False ) ;
+          AContext.Connection.IOHandler.Write( mOutStream, mSize, False ) ;
+          AContext.Connection.IOHandler.WriteBufferClear ;
+        finally
+          mResultStream.Free ;
+        end;
+        end
+      else
+        begin
+        AddLog( 'Not Valid Login !', 2 ) ;
+        AContext.Connection.DisConnect ;
+        end;
       end;
+    finally
+      mArgsStream.Free ;
     end;
+  finally
+    mOutStream.Free ;
+    mInStream.Free ;
+  end;
 end;
 
 procedure TTCPMServer.StartServer;

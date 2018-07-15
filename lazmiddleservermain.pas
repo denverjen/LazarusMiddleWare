@@ -279,8 +279,16 @@ begin
 end;
 
 procedure TFmtMain.Button8Click(Sender: TObject);
+var
+  mList : TStringList ;
+  mCount, i : Integer ;
 begin
-  Memo1.Lines.Add( mClient.GetServerFileList( '*.*' ) )  ;
+  mList := TStringList.Create ;
+  mList.Text :=  mClient.GetServerFileList( '*.*' )  ;
+  mCount := mList.Count ;
+  for i := 0 to mCount - 1 do
+    Memo1.Lines.Add( mList.Strings[ i ] ) ;
+  mList.Free ;
 end;
 
 procedure TFmtMain.Button9Click(Sender: TObject);

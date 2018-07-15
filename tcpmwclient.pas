@@ -23,7 +23,7 @@ type
 
   { Ttcpmclient }
 
-  Ttcpmclient = class(TDataModule)
+  TTCPmclient = class(TDataModule)
     IdTCPClient1: TIdTCPClient;
     ZConnection1: TZConnection;
     ZQuery1: TZQuery;
