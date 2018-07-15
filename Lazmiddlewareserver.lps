@@ -1,0 +1,227 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CONFIG>
+  <ProjectSession>
+    <Version Value="10"/>
+    <BuildModes Active="Default"/>
+    <Units Count="10">
+      <Unit0>
+        <Filename Value="Lazmiddlewareserver.lpr"/>
+        <IsPartOfProject Value="True"/>
+        <EditorIndex Value="2"/>
+        <CursorPos X="64" Y="10"/>
+        <UsageCount Value="206"/>
+        <Loaded Value="True"/>
+      </Unit0>
+      <Unit1>
+        <Filename Value="lazmiddleservermain.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="FmtMain"/>
+        <HasResources Value="True"/>
+        <ResourceBaseClass Value="Form"/>
+        <IsVisibleTab Value="True"/>
+        <TopLine Value="205"/>
+        <CursorPos X="29" Y="212"/>
+        <UsageCount Value="206"/>
+        <Loaded Value="True"/>
+        <LoadedDesigner Value="True"/>
+      </Unit1>
+      <Unit2>
+        <Filename Value="tcpmwclient.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="tcpmclient"/>
+        <HasResources Value="True"/>
+        <ResourceBaseClass Value="DataModule"/>
+        <EditorIndex Value="6"/>
+        <TopLine Value="122"/>
+        <CursorPos X="123" Y="50"/>
+        <UsageCount Value="200"/>
+        <Loaded Value="True"/>
+        <LoadedDesigner Value="True"/>
+      </Unit2>
+      <Unit3>
+        <Filename Value="tcpmwserver.pas"/>
+        <ComponentName Value="TCPMServer"/>
+        <HasResources Value="True"/>
+        <ResourceBaseClass Value="DataModule"/>
+        <EditorIndex Value="3"/>
+        <TopLine Value="756"/>
+        <CursorPos X="97" Y="779"/>
+        <UsageCount Value="102"/>
+        <Loaded Value="True"/>
+        <LoadedDesigner Value="True"/>
+      </Unit3>
+      <Unit4>
+        <Filename Value="dbcommon.pas"/>
+        <EditorIndex Value="5"/>
+        <TopLine Value="175"/>
+        <CursorPos X="66" Y="5"/>
+        <UsageCount Value="102"/>
+        <Loaded Value="True"/>
+      </Unit4>
+      <Unit5>
+        <Filename Value="../../dgs/indy10_5416/Lib/System/IdGlobal.pas"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="1880"/>
+        <CursorPos X="34" Y="1889"/>
+        <UsageCount Value="8"/>
+      </Unit5>
+      <Unit6>
+        <Filename Value="dgfunc.pas"/>
+        <EditorIndex Value="4"/>
+        <CursorPos X="108" Y="5"/>
+        <UsageCount Value="101"/>
+        <Loaded Value="True"/>
+      </Unit6>
+      <Unit7>
+        <Filename Value="../../.lazarus/onlinepackagemanager/packages/Indy10/Core/IdIOHandler.pas"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="2212"/>
+        <CursorPos Y="2221"/>
+        <UsageCount Value="4"/>
+        <DefaultSyntaxHighlighter Value="Delphi"/>
+      </Unit7>
+      <Unit8>
+        <Filename Value="../../.lazarus/onlinepackagemanager/packages/Indy10/System/IdGlobal.pas"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="1874"/>
+        <CursorPos X="50" Y="1889"/>
+        <UsageCount Value="19"/>
+        <DefaultSyntaxHighlighter Value="Delphi"/>
+      </Unit8>
+      <Unit9>
+        <Filename Value="../../.lazarus/onlinepackagemanager/packages/zeosdbo-7.1.4/src/dbc/ZDbcIntfs.pas"/>
+        <EditorIndex Value="1"/>
+        <TopLine Value="1071"/>
+        <CursorPos X="22" Y="1086"/>
+        <UsageCount Value="19"/>
+        <Loaded Value="True"/>
+        <DefaultSyntaxHighlighter Value="Delphi"/>
+      </Unit9>
+    </Units>
+    <JumpHistory Count="30" HistoryIndex="29">
+      <Position1>
+        <Filename Value="lazmiddleservermain.pas"/>
+        <Caret Line="81" Column="59" TopLine="61"/>
+      </Position1>
+      <Position2>
+        <Filename Value="lazmiddleservermain.pas"/>
+        <Caret Line="82" Column="59" TopLine="62"/>
+      </Position2>
+      <Position3>
+        <Filename Value="lazmiddleservermain.pas"/>
+        <Caret Line="81" Column="59" TopLine="61"/>
+      </Position3>
+      <Position4>
+        <Filename Value="lazmiddleservermain.pas"/>
+        <Caret Line="83" Column="59" TopLine="63"/>
+      </Position4>
+      <Position5>
+        <Filename Value="lazmiddleservermain.pas"/>
+        <Caret Line="183" TopLine="163"/>
+      </Position5>
+      <Position6>
+        <Filename Value="lazmiddleservermain.pas"/>
+        <Caret Line="178" Column="49" TopLine="167"/>
+      </Position6>
+      <Position7>
+        <Filename Value="lazmiddleservermain.pas"/>
+        <Caret Line="180" Column="49" TopLine="169"/>
+      </Position7>
+      <Position8>
+        <Filename Value="lazmiddleservermain.pas"/>
+        <Caret Line="195" TopLine="172"/>
+      </Position8>
+      <Position9>
+        <Filename Value="lazmiddleservermain.pas"/>
+        <Caret Line="7" Column="60"/>
+      </Position9>
+      <Position10>
+        <Filename Value="lazmiddleservermain.pas"/>
+        <Caret Line="90" Column="36" TopLine="66"/>
+      </Position10>
+      <Position11>
+        <Filename Value="lazmiddleservermain.pas"/>
+        <Caret Line="91" Column="38" TopLine="67"/>
+      </Position11>
+      <Position12>
+        <Filename Value="lazmiddleservermain.pas"/>
+        <Caret Line="170" Column="36" TopLine="146"/>
+      </Position12>
+      <Position13>
+        <Filename Value="lazmiddleservermain.pas"/>
+        <Caret Line="171" Column="38" TopLine="147"/>
+      </Position13>
+      <Position14>
+        <Filename Value="lazmiddleservermain.pas"/>
+        <Caret Line="63" Column="25" TopLine="51"/>
+      </Position14>
+      <Position15>
+        <Filename Value="lazmiddleservermain.pas"/>
+        <Caret Line="86" Column="37" TopLine="62"/>
+      </Position15>
+      <Position16>
+        <Filename Value="lazmiddleservermain.pas"/>
+        <Caret Line="293" Column="30" TopLine="254"/>
+      </Position16>
+      <Position17>
+        <Filename Value="lazmiddleservermain.pas"/>
+        <Caret Line="63" Column="25" TopLine="56"/>
+      </Position17>
+      <Position18>
+        <Filename Value="lazmiddleservermain.pas"/>
+        <Caret Line="194" Column="6" TopLine="179"/>
+      </Position18>
+      <Position19>
+        <Filename Value="lazmiddleservermain.pas"/>
+        <Caret Line="196" Column="68" TopLine="179"/>
+      </Position19>
+      <Position20>
+        <Filename Value="lazmiddleservermain.pas"/>
+        <Caret Line="195" Column="132" TopLine="181"/>
+      </Position20>
+      <Position21>
+        <Filename Value="lazmiddleservermain.pas"/>
+        <Caret Line="194" Column="132" TopLine="180"/>
+      </Position21>
+      <Position22>
+        <Filename Value="lazmiddleservermain.pas"/>
+        <Caret Line="14" Column="32"/>
+      </Position22>
+      <Position23>
+        <Filename Value="tcpmwserver.pas"/>
+        <Caret Line="36" Column="37" TopLine="26"/>
+      </Position23>
+      <Position24>
+        <Filename Value="tcpmwserver.pas"/>
+        <Caret Line="123" Column="12" TopLine="110"/>
+      </Position24>
+      <Position25>
+        <Filename Value="tcpmwserver.pas"/>
+        <Caret Line="123" Column="36" TopLine="109"/>
+      </Position25>
+      <Position26>
+        <Filename Value="tcpmwserver.pas"/>
+        <Caret Line="126" Column="67" TopLine="109"/>
+      </Position26>
+      <Position27>
+        <Filename Value="tcpmwserver.pas"/>
+        <Caret Line="64" Column="59" TopLine="47"/>
+      </Position27>
+      <Position28>
+        <Filename Value="tcpmwserver.pas"/>
+        <Caret Line="71" Column="13" TopLine="55"/>
+      </Position28>
+      <Position29>
+        <Filename Value="tcpmwclient.pas"/>
+        <Caret Line="28" Column="52" TopLine="22"/>
+      </Position29>
+      <Position30>
+        <Filename Value="tcpmwclient.pas"/>
+        <Caret Line="30" Column="52" TopLine="23"/>
+      </Position30>
+    </JumpHistory>
+  </ProjectSession>
+  <Debugging>
+    <Watches Count="1"/>
+  </Debugging>
+</CONFIG>

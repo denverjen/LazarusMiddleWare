@@ -1,0 +1,31 @@
+Server Side Usage :
+
+  mServer := TTCPMServer.Create( Self ) ;
+  mServer.pExePath := ExtractFilePath(  ParamStr( 0 )  ) ;
+  mServer.pLogMessage := @LogMessage ;
+  mServer.pLogMode := True ;
+  mServer.pLogLevel := 5 ; // All Log
+  mServer.pPort := 6999 ; // Server Port ;
+  mServer.SetAlias( 'testdb','mysqld-5','127.0.0.1','testrun','testpass','horse','utf8',
+  '/usr/lib/x86_64-linux-gnu/libmysqlclient.so.20.3.9','testpath','uusdfsd',3306 ) ;           
+  mServer.StartServer ; 
+  
+  
+  Note : Server can set multi-alias, Client Side can use different pServerAlias to access different database and datapath 
+  
+Client side Usage :
+
+  mClient := Ttcpmclient.Create( Self ) ;
+  mClient.pServerHost := '127.0.0.1' ;
+  mClient.pServerAlias := 'testdb' ;
+  mClient.pServerPort := 6999 ;
+  mClient.pServerKey := 'uusdfsd' ;
+  mClient.Connect ;    
+  
+  
+Client Side Commands :
+
+  MT := TdgsMemTable.Create( Self ) ;
+
+  MT.Base64AllData := mClient.DBSelect( 'select * from customer' ) ;
+  if mClient.pLastError <> '--' then ShowMessage( mClient.pLastError ) ;

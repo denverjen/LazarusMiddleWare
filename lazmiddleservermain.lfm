@@ -1,0 +1,233 @@
+object FmtMain: TFmtMain
+  Left = 342
+  Height = 647
+  Top = 167
+  Width = 1241
+  Caption = 'LazMiddleware'
+  ClientHeight = 647
+  ClientWidth = 1241
+  OnCreate = FormCreate
+  OnDestroy = FormDestroy
+  LCLVersion = '1.8.4.0'
+  object StatusBar1: TStatusBar
+    Left = 0
+    Height = 21
+    Top = 626
+    Width = 1241
+    Panels = <    
+      item
+        Text = 'message :'
+        Width = 100
+      end    
+      item
+        Width = 400
+      end>
+    SimplePanel = False
+  end
+  object Memo1: TMemo
+    Left = 0
+    Height = 188
+    Top = 438
+    Width = 1241
+    Align = alBottom
+    ScrollBars = ssAutoBoth
+    TabOrder = 1
+  end
+  object Panel1: TPanel
+    Left = 0
+    Height = 438
+    Top = 0
+    Width = 1241
+    Align = alClient
+    ClientHeight = 438
+    ClientWidth = 1241
+    TabOrder = 2
+    object Panel2: TPanel
+      Left = 1
+      Height = 151
+      Top = 1
+      Width = 1239
+      Align = alTop
+      ClientHeight = 151
+      ClientWidth = 1239
+      TabOrder = 0
+      object Button1: TButton
+        Left = 12
+        Height = 25
+        Top = 12
+        Width = 207
+        Caption = 'Start Server'
+        OnClick = Button1Click
+        TabOrder = 0
+      end
+      object Button2: TButton
+        Left = 384
+        Height = 25
+        Top = 12
+        Width = 207
+        Caption = 'Client Test-Connect'
+        OnClick = Button2Click
+        TabOrder = 1
+      end
+      object Button3: TButton
+        Left = 384
+        Height = 25
+        Top = 40
+        Width = 207
+        Caption = 'Client Test - SelectSQL'
+        OnClick = Button3Click
+        TabOrder = 2
+      end
+      object Button4: TButton
+        Left = 616
+        Height = 25
+        Top = 40
+        Width = 208
+        Caption = 'Client Test - ExecSQL (10)'
+        OnClick = Button4Click
+        TabOrder = 3
+      end
+      object Button5: TButton
+        Left = 848
+        Height = 25
+        Top = 40
+        Width = 200
+        Caption = 'Client Test - ExecSQL (1)'
+        OnClick = Button5Click
+        TabOrder = 4
+      end
+      object Button6: TButton
+        Left = 384
+        Height = 25
+        Top = 72
+        Width = 351
+        Caption = 'Client Test - Select SQL with Parameters'
+        OnClick = Button6Click
+        TabOrder = 5
+      end
+      object Button7: TButton
+        Left = 384
+        Height = 25
+        Top = 104
+        Width = 352
+        Caption = 'Client Test - ExecSQL with Parameters'
+        OnClick = Button7Click
+        TabOrder = 6
+      end
+      object Button18: TButton
+        Left = 616
+        Height = 25
+        Top = 12
+        Width = 203
+        Caption = 'Cleint Disconnect'
+        OnClick = Button18Click
+        TabOrder = 7
+      end
+    end
+    object DBGrid1: TDBGrid
+      Left = 720
+      Height = 285
+      Top = 152
+      Width = 520
+      Align = alRight
+      Color = clWindow
+      Columns = <>
+      DataSource = DataSource1
+      TabOrder = 1
+    end
+    object Button8: TButton
+      Left = 16
+      Height = 25
+      Top = 160
+      Width = 328
+      Caption = 'Get the list of files in datapath'
+      OnClick = Button8Click
+      TabOrder = 2
+    end
+    object Button9: TButton
+      Left = 16
+      Height = 25
+      Top = 192
+      Width = 328
+      Caption = 'Test File Exists'
+      OnClick = Button9Click
+      TabOrder = 3
+    end
+    object Button10: TButton
+      Left = 16
+      Height = 25
+      Top = 224
+      Width = 328
+      Caption = 'Delete a File in Server'
+      OnClick = Button10Click
+      TabOrder = 4
+    end
+    object Button11: TButton
+      Left = 16
+      Height = 25
+      Top = 256
+      Width = 328
+      Caption = 'Save File To Server'
+      OnClick = Button11Click
+      TabOrder = 5
+    end
+    object Button12: TButton
+      Left = 16
+      Height = 25
+      Top = 288
+      Width = 328
+      Caption = 'Load File From Server'
+      OnClick = Button12Click
+      TabOrder = 6
+    end
+    object Button13: TButton
+      Left = 16
+      Height = 25
+      Top = 344
+      Width = 328
+      Caption = 'Test Length for UTF8'
+      OnClick = Button13Click
+      TabOrder = 7
+    end
+    object Button14: TButton
+      Left = 16
+      Height = 25
+      Top = 384
+      Width = 328
+      Caption = 'Test Empty Table'
+      OnClick = Button14Click
+      TabOrder = 8
+    end
+    object Button15: TButton
+      Left = 392
+      Height = 25
+      Top = 160
+      Width = 315
+      Caption = 'Test For Local  Mode SQL'
+      OnClick = Button15Click
+      TabOrder = 9
+    end
+    object Button16: TButton
+      Left = 392
+      Height = 25
+      Top = 192
+      Width = 315
+      Caption = 'Test for local Filelist'
+      OnClick = Button16Click
+      TabOrder = 10
+    end
+    object Button17: TButton
+      Left = 392
+      Height = 25
+      Top = 224
+      Width = 315
+      Caption = 'Test for local sqlite3'
+      OnClick = Button17Click
+      TabOrder = 11
+    end
+  end
+  object DataSource1: TDataSource
+    left = 872
+    top = 200
+  end
+end

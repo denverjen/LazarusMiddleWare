@@ -1,0 +1,38 @@
+object tcpmclient: Ttcpmclient
+  OnCreate = DataModuleCreate
+  OnDestroy = DataModuleDestroy
+  OldCreateOrder = False
+  Height = 420
+  HorizontalOffset = 849
+  VerticalOffset = 381
+  Width = 493
+  PPI = 96
+  object IdTCPClient1: TIdTCPClient
+    ConnectTimeout = 0
+    IPVersion = Id_IPv4
+    Port = 0
+    ReadTimeout = -1
+    left = 148
+    top = 84
+  end
+  object ZConnection1: TZConnection
+    ControlsCodePage = cCP_UTF8
+    AutoEncodeStrings = False
+    Properties.Strings = (
+      'AutoEncodeStrings='
+    )
+    Port = 0
+    left = 133
+    top = 172
+  end
+  object ZQuery1: TZQuery
+    Params = <>
+    left = 240
+    top = 168
+  end
+  object ZStoredProc1: TZStoredProc
+    Params = <>
+    left = 348
+    top = 172
+  end
+end
