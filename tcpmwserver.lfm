@@ -1,0 +1,34 @@
+object TCPMServer: TTCPMServer
+  OnCreate = DataModuleCreate
+  OnDestroy = DataModuleDestroy
+  OldCreateOrder = False
+  Height = 500
+  HorizontalOffset = 441
+  VerticalOffset = 309
+  Width = 681
+  PPI = 96
+  object ZConnection1: TZConnection
+    ControlsCodePage = cCP_UTF8
+    AutoEncodeStrings = False
+    Properties.Strings = (
+      'AutoEncodeStrings='
+    )
+    Port = 0
+    left = 112
+    top = 66
+  end
+  object ZQuery1: TZQuery
+    Params = <>
+    left = 216
+    top = 60
+  end
+  object IdTCPServer1: TIdTCPServer
+    Bindings = <>
+    DefaultPort = 0
+    OnConnect = IdTCPServer1Connect
+    OnDisconnect = IdTCPServer1Disconnect
+    OnExecute = IdTCPServer1Execute
+    left = 190
+    top = 140
+  end
+end
