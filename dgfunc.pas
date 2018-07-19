@@ -468,8 +468,11 @@ begin
   if mByte = 1 then
     begin
     mMem.Read( mLen, SizeOf( mLen ) ) ;
-    SetLength( Result, mLen ) ;
-    mMem.Read( Result[ 1 ], mLen ) ;
+    if mLen > 0 then
+      begin
+      SetLength( Result, mLen ) ;
+      mMem.Read( Result[ 1 ], mLen ) ;
+      end ;
     end ;
 end;
 
@@ -495,7 +498,8 @@ begin
   mLen := ms.Size ;
   mMem.Write( mByte, 1 ) ;
   mMem.Write( mLen,SizeOf( mLen ) ) ;
-  mMem.CopyFrom( ms, mLen ) ;
+  if mLen > 0 then
+    mMem.CopyFrom( ms, mLen ) ;
   ms.Free ;
 end;
 

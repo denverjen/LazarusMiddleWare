@@ -90,7 +90,7 @@ begin
   mServer.pLogMode := True ;
   mServer.pLogLevel := 5 ; // All Log
   mServer.pPort := 6999 ; // Server Port ;
-  mServer.SetAlias( 'testdb','mysqld-5','127.0.0.1','testrun','testpass','horse','utf8',
+  mServer.SetAlias( 'testdb','mysqld-5','127.0.0.1','testrun','testpass','horse','utf8','',
   '/usr/lib/x86_64-linux-gnu/libmysqlclient.so.20.3.9','testpath','uusdfsd',3306 ) ;
   mClient := Ttcpmclient.Create( Self ) ;
   MT := TdgsMemTable.Create( Self ) ;
@@ -170,7 +170,7 @@ var
   mLocalClient : Ttcpmclient ;
 begin
   mLocalClient := Ttcpmclient.Create( Self ) ;
-  mLocalClient.SetLocalMode( 'mysqld-5','127.0.0.1','testrun','testpass','horse','utf8',
+  mLocalClient.SetLocalMode( 'mysqld-5','127.0.0.1','testrun','testpass','horse','utf8','',
   '/usr/lib/x86_64-linux-gnu/libmysqlclient.so.20.3.9','testpath',3306 ) ;
   MT.Base64AllData := mLocalClient.DBSelect( 'select * from raceday order by id desc' );
   DataSource1.DataSet := MT ;
@@ -182,7 +182,7 @@ var
   mLocalClient : Ttcpmclient ;
 begin
   mLocalClient := Ttcpmclient.Create( Self ) ;
-  mLocalClient.SetLocalMode( 'mysqld-5','127.0.0.1','testrun','testpass','horse','utf8','/usr/lib/x86_64-linux-gnu/libmysqlclient.so.20.3.9','testpath',3306 ) ;
+  mLocalClient.SetLocalMode( 'mysqld-5','127.0.0.1','testrun','testpass','horse','utf8','','/usr/lib/x86_64-linux-gnu/libmysqlclient.so.20.3.9','testpath',3306 ) ;
   Memo1.Lines.Add( mLocalClient.GetServerFileList('*.*') ) ;
   mLocalClient.Free ;
 end;
@@ -193,7 +193,7 @@ var
 begin
   mLocalClient := Ttcpmclient.Create( Self ) ;
   mLocalClient.pAddLog := @LogMessage ;
-  mLocalClient.SetLocalMode( 'sqlite-3','','','','horse.db','utf8','/usr/lib/x86_64-linux-gnu/libsqlite3.so.0.8.6','testpath',0 ) ;
+  mLocalClient.SetLocalMode( 'sqlite-3','','','','horse.db','utf8','','/usr/lib/x86_64-linux-gnu/libsqlite3.so.0.8.6','testpath',0 ) ;
   MT.Base64AllData := mLocalClient.DBSelect( 'select * from raceday order by id desc' );
   DataSource1.DataSet := MT ;
   mLocalClient.Free ;

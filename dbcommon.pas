@@ -293,9 +293,9 @@ procedure TdgsParams.AddString(AName, AValue: String );
 var
   mLen : Integer ;
 begin
-  mLen := Length( AValue ) + 2  ;
+  mLen := Length( AValue ) ;
   Inc( NoOfParams ) ;
-  AddNameType( AName, 'string', mLen ) ;
+  AddNameType( AName, 'string', mLen + 2 ) ;
   dgStrToStream( AValue, DataStream ) ;
 end;
 
@@ -504,7 +504,7 @@ begin
   ms := TMemoryStream.Create ;
   Base64StringToStream( mBase64, ms ) ;
   ms.Position := 0 ;
-  Self.Clear ;
+  Clear ;
   Self.LoadFromStream( ms ) ;
   ms.Free ;
 end;

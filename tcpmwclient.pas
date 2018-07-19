@@ -11,9 +11,13 @@ interface
 
 
 uses
-  Classes, SysUtils, FileUtil, db, dbcommon, Dialogs, ExtCtrls, LResources,
+  Classes, SysUtils, FileUtil, db, dbcommon, Dialogs, ExtCtrls, LResources, ZCompatibility,
   IdTCPClient, IdThreadComponent, Variants, ZConnection, ZDataset,
   ZStoredProcedure ;
+
+Const
+  CLIENT_VERSION = '0.2.2' ;
+
 
 type
   TLogMessage = procedure( mMsg : String ) of Object ;
@@ -39,13 +43,14 @@ type
     function DBExecSQL( ASQL : String ) : Integer ;
     function DBExecSQL( ASQL, AParaBase64AllData : String ) : Integer ;
     function GetServerVersion : String ;
+    function GetClientVersion : String ;
     function GetServerDateTime : TDateTime ;
     function GetServerFileList( APattern : String ) : String ;
     function ServerFileExist( AFileName : String ) : Boolean  ;
     function ServerDeleteFile( AFileName : String ) : String ;
     function ServerSaveFile( AFileName : String ; var AFileStream : TMemoryStream ) : String ;
     function ServerLoadFile( AFileName : String ; var AFileStream : TMemoryStream ) : String ;
-    procedure SetLocalMode( ADBType,AHost,AUser,APassword,ADBName,ACodePage,ALibPath,ADataPath : String ; APort : Integer ) ;
+    procedure SetLocalMode( ADBType,AHost,AUser,APassword,ADBName,ACodePage,ASQL,ALibPath,ADataPath : String ; APort : Integer ) ;
   private
     { private declarations }
     procedure CreateLocalDBConnection( var AConn : TZConnection ) ;
@@ -75,6 +80,7 @@ type
     pLastError : String ;
     // Local Mode Data
     pLocalDBType,pLocalDBHost,pLocalDBUser,pLocalDBPass,pLocalDBName,pLocalCodePage,pLocalLibPath,pLocalDataPath : String ;
+    pLocalSQL : String ;
     pLocalExePath : String ;
     pLocalDBPort : Integer ;
     pAddLog : TLogMessage ;
@@ -92,19 +98,19 @@ uses
 
 { Ttcpmclient }
 
-procedure Ttcpmclient.DataModuleCreate(Sender: TObject);
+procedure TTCPmclient.DataModuleCreate(Sender: TObject);
 begin
   InitCriticalSection( CS ) ;
   pLocalMode := 0 ;
   pLocalExePath := ExtractFilePath(  ParamStr( 0 )  ) ;
 end;
 
-procedure Ttcpmclient.DataModuleDestroy(Sender: TObject);
+procedure TTCPmclient.DataModuleDestroy(Sender: TObject);
 begin
   DoneCriticalsection( CS ) ;
 end;
 
-procedure Ttcpmclient.Connect;
+procedure TTCPmclient.Connect;
 begin
    IdTCPClient1.Host := pServerHost ;
    IdTCPClient1.Port := pServerPort ;
@@ -112,12 +118,12 @@ begin
    Login( pServerKey ) ;
 end;
 
-procedure Ttcpmclient.DisConnect;
+procedure TTCPmclient.DisConnect;
 begin
   IdTCPClient1.Disconnect ;
 end;
 
-procedure Ttcpmclient.Login(AKey: String);
+procedure TTCPmclient.Login(AKey: String);
 var
   ms : TMemoryStream ;
   mTime : TDatetime ;
@@ -131,7 +137,8 @@ begin
     end;
 end;
 
-procedure Ttcpmclient.RequestService(AService, ACName: String; const Args: array of Variant; AResult: TMemoryStream);
+procedure TTCPmclient.RequestService(AService, ACName: String;
+  const Args: array of Variant; AResult: TMemoryStream);
 var
   mInStream,mOutStream : TMemoryStream ;
   mSize : LongInt ;
@@ -171,7 +178,7 @@ begin
   end;
 end;
 
-function Ttcpmclient.DBSelect(ASQL: String): String;
+function TTCPmclient.DBSelect(ASQL: String): String;
 begin
   if pLocalMode = 0 then
     Result := DBServerSelect( ASQL )
@@ -179,7 +186,7 @@ begin
     Result := DBLocalSelect( ASQL ) ;
 end;
 
-function Ttcpmclient.DBSelect(ASQL, AParaBase64AllData: String): String;
+function TTCPmclient.DBSelect(ASQL, AParaBase64AllData: String): String;
 begin
   if pLocalMode = 0 then
     Result := DBServerSelect( ASQL, AParaBase64AllData )
@@ -187,7 +194,7 @@ begin
     Result := DBLocalSelect( ASQL,AParaBase64AllData ) ;
 end;
 
-function Ttcpmclient.DBExecSQL(ASQL: String): Integer;
+function TTCPmclient.DBExecSQL(ASQL: String): Integer;
 begin
   if pLocalMode = 0 then
     Result := DBServerExecSQL( ASQL )
@@ -195,7 +202,7 @@ begin
     Result := DBLocalExecSQL( ASQL ) ;
 end;
 
-function Ttcpmclient.DBExecSQL(ASQL, AParaBase64AllData: String): Integer;
+function TTCPmclient.DBExecSQL(ASQL, AParaBase64AllData: String): Integer;
 begin
   if pLocalMode = 0 then
     Result := DBServerExecSQL( ASQL, AParaBase64AllData )
@@ -203,7 +210,7 @@ begin
     Result := DBLocalExecSQL( ASQL, AParaBase64AllData ) ;
 end;
 
-function Ttcpmclient.GetServerVersion: String;
+function TTCPmclient.GetServerVersion: String;
 var
   ms : TMemoryStream ;
 begin
@@ -221,7 +228,12 @@ begin
     Result := 'Local Mode' ;
 end;
 
-function Ttcpmclient.GetServerDateTime: TDateTime;
+function TTCPmclient.GetClientVersion: String;
+begin
+  Result := CLIENT_VERSION ;
+end;
+
+function TTCPmclient.GetServerDateTime: TDateTime;
 var
  ms : TMemoryStream ;
 begin
@@ -239,7 +251,7 @@ begin
     Result := Now ;
 end;
 
-function Ttcpmclient.GetServerFileList(APattern: String): String;
+function TTCPmclient.GetServerFileList(APattern: String): String;
 var
   ms : TMemoryStream ;
 begin
@@ -259,7 +271,7 @@ begin
     Result := GetLocalFileList( APattern ) ;
 end;
 
-function Ttcpmclient.ServerFileExist(AFileName: String): Boolean;
+function TTCPmclient.ServerFileExist(AFileName: String): Boolean;
 var
   ms : TMemoryStream ;
 begin
@@ -280,7 +292,7 @@ begin
 
 end;
 
-function Ttcpmclient.ServerDeleteFile(AFileName: String): String ;
+function TTCPmclient.ServerDeleteFile(AFileName: String): String;
 var
   ms : TMemoryStream ;
 begin
@@ -300,7 +312,8 @@ begin
 
 end;
 
-function Ttcpmclient.ServerSaveFile(AFileName: String; var AFileStream: TMemoryStream) : String ;
+function TTCPmclient.ServerSaveFile(AFileName: String;
+  var AFileStream: TMemoryStream): String;
 var
   mBase64String : String ;
   ms : TMemoryStream ;
@@ -321,7 +334,8 @@ begin
     Result := LocalSaveFile( AFileName, AFileStream ) ;
 end;
 
-function Ttcpmclient.ServerLoadFile(AFileName: String;  var AFileStream: TMemoryStream): String;
+function TTCPmclient.ServerLoadFile(AFileName: String;
+  var AFileStream: TMemoryStream): String;
 var
   ms : TMemoryStream ;
 begin
@@ -339,7 +353,8 @@ begin
     end;
 end;
 
-procedure Ttcpmclient.SetLocalMode(ADBType, AHost, AUser, APassword, ADBName,ACodePage, ALibPath, ADataPath: String; APort: Integer);
+procedure TTCPmclient.SetLocalMode(ADBType, AHost, AUser, APassword, ADBName,
+  ACodePage, ASQL, ALibPath, ADataPath: String; APort: Integer);
 begin
   pLocalMode := 1 ;
   pLocalDBType := ADBType ;
@@ -350,29 +365,73 @@ begin
   pLocalCodePage := ACodePage ;
   pLocalLibPath := ALibPath ;
   pLocalDataPath := ADataPath ;
+  pLocalSQL := ASQL ;
 end;
 
-procedure Ttcpmclient.CreateLocalDBConnection(var AConn: TZConnection);
+procedure TTCPmclient.CreateLocalDBConnection(var AConn: TZConnection);
 var
   mLocalSqlite : String ;
+  mQuery : TZQuery ;
+  mAllSQL,mTemp : TStringList ;
+  mCount, i : Integer ;
+  mStr, mLast : String ;
 begin
    AConn := TZConnection.Create( Self ) ;
    mLocalSqlite :=  IncludeTrailingBackslash( pLocalExePath ) + IncludeTrailingBackslash( pLocalDataPath  ) + pLocalDBName ;
-   if pos(  'sqlite', pLocalDBType ) >= 0 then
+   if pos(  'sqlite', pLocalDBType ) > 0 then
      AConn.Database := mLocalSqlite
    else
      AConn.Database := pLocalDBName ;
-   if Assigned( pAddLog ) then pAddLog( AConn.Database ) ;
+//    if Assigned( pAddLog ) then pAddLog( AConn.Database ) ;
    AConn.HostName := pLocalDBHost ;
    AConn.User := pLocalDBUser ;
    AConn.Password := pLocalDBPass ;
    AConn.Protocol := pLocalDBType ;
    AConn.Port := pLocalDBPort ;
+
+   if UpperCase( pLocalCodePage)  = 'UTF8' then
+     AConn.ControlsCodePage := cCP_UTF8 ;
+   if UpperCase( pLocalCodePage)  = 'UTF16' then
+     AConn.ControlsCodePage := cCP_UTF16 ;
    AConn.LibraryLocation := pLocalLibPath ;
    AConn.Connect ;
+   if Trim( pLocalSQL ) <> '' then
+     begin
+     mAllSQL := TStringList.Create ;
+     mTemp := TStringList.Create ;
+     mQuery := TZQuery.Create( Self ) ;
+     Try
+     mAllSQL.Text := pLocalSQL ;
+     mCount := mAllSQL.Count ;
+     for i := 0 to mCount - 1 do
+       begin
+       mStr := Trim( mAllSQL.Strings[ i ] ) ;
+       if mStr <> '' then
+         mTemp.Add( mStr ) ;
+       mLast := Copy( mStr, Length( mStr ) , 1 ) ;
+       if mLast = ';' then
+         begin
+         mQuery.SQL.Text := mTemp.Text ;
+         mQuery.ExecSQL ;
+         mTemp.Clear ;
+         end;
+       end;
+     if Trim( mTemp.Text ) <> '' then
+       begin
+       mQuery.SQL.Text := mTemp.Text ;
+       mQuery.ExecSQL ;
+       end;
+     finally
+       mQuery.Free ;
+       mTemp.Free ;
+       mAllSQL.Free ;
+     end;
+
+     end;
+
 end;
 
-function Ttcpmclient.DBServerSelect(ASQL: String): String;
+function TTCPmclient.DBServerSelect(ASQL: String): String;
 var
   ms : TMemoryStream ;
 begin
@@ -387,7 +446,7 @@ begin
   end;
 end;
 
-function Ttcpmclient.DBServerSelect(ASQL, AParaBase64AllData: String): String;
+function TTCPmclient.DBServerSelect(ASQL, AParaBase64AllData: String): String;
 var
   ms : TMemoryStream ;
 begin
@@ -402,7 +461,7 @@ begin
   end;
 end;
 
-function Ttcpmclient.DBServerExecSQL(ASQL: String): Integer;
+function TTCPmclient.DBServerExecSQL(ASQL: String): Integer;
 var
   ms : TMemoryStream ;
 begin
@@ -417,7 +476,7 @@ begin
   end;
 end;
 
-function Ttcpmclient.DBServerExecSQL(ASQL, AParaBase64AllData: String): Integer;
+function TTCPmclient.DBServerExecSQL(ASQL, AParaBase64AllData: String): Integer;
 var
   ms : TMemoryStream ;
 begin
@@ -432,7 +491,7 @@ begin
    end;
 end;
 
-function Ttcpmclient.DBLocalSelect(ASQL: String): String;
+function TTCPmclient.DBLocalSelect(ASQL: String): String;
 var
   mConn : TZConnection ;
   mQuery : TZQuery ;
@@ -464,7 +523,7 @@ begin
 
 end;
 
-function Ttcpmclient.DBLocalSelect(ASQL, AParaBase64AllData: String): String;
+function TTCPmclient.DBLocalSelect(ASQL, AParaBase64AllData: String): String;
 var
   mConn : TZConnection ;
   mQuery : TZQuery ;
@@ -496,7 +555,7 @@ begin
   end;
 end;
 
-function Ttcpmclient.DBLocalExecSQL(ASQL: String): Integer;
+function TTCPmclient.DBLocalExecSQL(ASQL: String): Integer;
 var
   mConn : TZConnection ;
   mQuery : TZQuery ;
@@ -522,7 +581,7 @@ begin
    end;
 end;
 
-function Ttcpmclient.DBLocalExecSQL(ASQL, AParaBase64AllData: String): Integer;
+function TTCPmclient.DBLocalExecSQL(ASQL, AParaBase64AllData: String): Integer;
 var
   mConn : TZConnection ;
   mQuery : TZQuery ;
@@ -549,7 +608,8 @@ begin
    end;
 end;
 
-procedure Ttcpmclient.SetQueryParams(var AQuery: TZQuery; ABase64AllData: String  );
+procedure TTCPmclient.SetQueryParams(var AQuery: TZQuery; ABase64AllData: String
+  );
 var
   mParams : TdgsMemTable ;
   mCount, i : Integer ;
@@ -612,7 +672,7 @@ begin
 
 end;
 
-function Ttcpmclient.GetLocalFileList(APattern: String): String;
+function TTCPmclient.GetLocalFileList(APattern: String): String;
 var
   mfl,mList : TStringList ;
   i,mCount : Integer ;
@@ -629,7 +689,7 @@ begin
   mList.Free ;
 end;
 
-function Ttcpmclient.LocalFileExist(AFileName: String): Boolean;
+function TTCPmclient.LocalFileExist(AFileName: String): Boolean;
 var
   mDataPath,mFName : String ;
 begin
@@ -638,7 +698,7 @@ begin
   Result := FileExists( mFName ) ;
 end;
 
-function Ttcpmclient.LocalDeleteFile(AFileName: String): String;
+function TTCPmclient.LocalDeleteFile(AFileName: String): String;
 var
   mDataPath,mFName : String ;
 begin
@@ -651,7 +711,8 @@ begin
     pLastError := 'File : ' + AFileName + ' Not found !' ;
 end;
 
-function Ttcpmclient.LocalSaveFile(AFileName: String; var AFileStream: TMemoryStream): String;
+function TTCPmclient.LocalSaveFile(AFileName: String;
+  var AFileStream: TMemoryStream): String;
 var
   mDataPath,mFName : String ;
 begin
@@ -667,7 +728,8 @@ begin
    end ;
 end;
 
-function Ttcpmclient.LocalLoadFile(AFileName: String; var AFileStream: TMemoryStream): String;
+function TTCPmclient.LocalLoadFile(AFileName: String;
+  var AFileStream: TMemoryStream): String;
 var
   mDataPath,mFName : String ;
 begin

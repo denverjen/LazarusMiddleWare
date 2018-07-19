@@ -10,12 +10,12 @@ interface
 }
 
 uses
-  Classes, SysUtils, FileUtil, ZConnection, ZDataset,
+  Classes, SysUtils, FileUtil, ZConnection, ZDataset, ZCompatibility ,
   IdTCPServer, dbcommon, IdGlobal, db , IdCustomTCPServer, IdContext;
 
 
 Const
-  SERVER_VERSION = '0.2.1' ;
+  SERVER_VERSION = '0.2.2' ;
 
 type
   TMyContext = class
@@ -44,7 +44,7 @@ type
     procedure StartServer ;
     procedure ClearAlias ;
     function AliasList : String ;
-    procedure SetAlias( AAliasName,ADBType,AHost,AUser,APassword,ADBName,ACodePage,ALibPath,ADataPath,AKey : String ; APort : Integer ) ;
+    procedure SetAlias( AAliasName,ADBType,AHost,AUser,APassword,ADBName,ACodePage,ASQL,ALibPath,ADataPath,AKey : String ; APort : Integer ) ;
     procedure AddLog( mMessage : String ; mLevel : Integer ) ;
   private
     { private declarations }
@@ -198,45 +198,46 @@ begin
           AContext.Connection.IOHandler.WriteBufferClear ;
           AddLog( 'Login OK ! and ' + IntToStr( mSize ) + ' bytes of data back to client !' ,2  ) ;
           end
-      else
-        begin
-        TMyContext( AContext.Data ).Login := 0 ;
-        AddLog( 'Login Fail ! Key InValid !', 2 ) ;
-        AContext.Connection.Disconnect ;
-        end ;
-      end
-    else
-      begin
-      if TMyContext( AContext.Data ).Login = 1 then
-        begin
-        mOutStream.Clear ;
-        mResultStream := TMemoryStream.Create ;
-        Try
-          InternalServices( mCommand, mCName, mArgsStream, mResultStream ) ;
-          mResultStream.Position := 0 ;
-          dgCompressStream( mResultStream ,mOutStream ) ;
-          mOutStream.Position := 0 ;
-          mSize := mOutStream.Size ;
-          AContext.Connection.IOHandler.Write( mSize,False ) ;
-          AContext.Connection.IOHandler.Write( mOutStream, mSize, False ) ;
-          AContext.Connection.IOHandler.WriteBufferClear ;
-        finally
-          mResultStream.Free ;
-        end;
+        else
+          begin
+          TMyContext( AContext.Data ).Login := 0 ;
+          AddLog( 'Login Fail ! Key InValid !', 2 ) ;
+          AContext.Connection.Disconnect ;
+          end ;
         end
       else
         begin
-        AddLog( 'Not Valid Login !', 2 ) ;
-        AContext.Connection.DisConnect ;
+        if TMyContext( AContext.Data ).Login = 1 then
+          begin
+          mOutStream.Clear ;
+          mResultStream := TMemoryStream.Create ;
+          Try
+            InternalServices( mCommand, mCName, mArgsStream, mResultStream ) ;
+            mResultStream.Position := 0 ;
+            dgCompressStream( mResultStream ,mOutStream ) ;
+            mOutStream.Position := 0 ;
+            mSize := mOutStream.Size ;
+            AContext.Connection.IOHandler.Write( mSize,False ) ;
+            AContext.Connection.IOHandler.Write( mOutStream, mSize, False ) ;
+            AContext.Connection.IOHandler.WriteBufferClear ;
+          finally
+            mResultStream.Free ;
+          end;
+          end
+        else
+          begin
+          AddLog( 'Not Valid Login !', 2 ) ;
+          AContext.Connection.DisConnect ;
+          end;
         end;
+      finally
+        mArgsStream.Free ;
       end;
     finally
-      mArgsStream.Free ;
+      mOutStream.Free ;
+      mInStream.Free ;
     end;
-  finally
-    mOutStream.Free ;
-    mInStream.Free ;
-  end;
+
 end;
 
 procedure TTCPMServer.StartServer;
@@ -283,7 +284,7 @@ begin
 end;
 
 procedure TTCPMServer.SetAlias(AAliasName, ADBType, AHost, AUser, APassword,
-  ADBName, ACodePage, ALibPath, ADataPath, AKey : String; APort: Integer);
+  ADBName, ACodePage, ASQL, ALibPath, ADataPath, AKey : String; APort: Integer);
 begin
   WAlias.Append ;
   WAlias.Edit ;
@@ -297,7 +298,8 @@ begin
   WAlias.FieldByName( 'password' ).AsString := APassword ;
   WAlias.FieldByName( 'key' ).AsString := AKey ;
   WAlias.FieldByName( 'port' ).AsInteger := APort ;
-
+  WAlias.FieldByName( 'codepage' ).AsString := ACodePage ;
+  WAlias.FieldByName( 'sql' ).AsString := ASQL ;
   WAlias.Post ;
 end;
 
@@ -665,7 +667,7 @@ end;
 
 procedure TTCPMServer.CreateDBConnection(var mConn: TZConnection; mAlias: String );
 var
-  mDB,mHost,mUser,mPass,mType,mStr,mLast,mLibPath : String ;
+  mDB,mHost,mUser,mPass,mType,mStr,mLast,mLibPath,mCodePage : String ;
   mPort : Integer ;
   mQuery : TZQuery ;
   mAllSQL,mTemp : TStringList ;
@@ -682,6 +684,7 @@ begin
     mPass := WAlias.FieldByName( 'password' ).AsString ;
     mType := WAlias.FieldByName( 'dbtype' ).AsString ;
     mPort := WAlias.FieldByName( 'port' ).AsInteger ;
+    mCodePage := WAlias.FieldByName( 'codepage' ).AsString ;
     mAllSQL.Text := WAlias.FieldByName( 'sql' ).AsString ;
     mLibPath := WAlias.FieldByName( 'libpath' ).AsString ;
     AddLog( mAllSQL.Text, 3 ) ;
@@ -696,6 +699,10 @@ begin
   mConn.Protocol := mType ;
   mConn.Port := mPort ;
   mConn.LibraryLocation := mLibPath ;
+  if UpperCase( mCodePage ) = 'UTF8' then
+    mConn.ControlsCodePage := cCP_UTF8 ;
+  if UpperCase( mCodePage ) = 'UTF16' then
+    mConn.ControlsCodePage := cCP_UTF16 ;
   mConn.Connect ;
   mQuery := TZQuery.Create( nil ) ;
   mQuery.Connection := mConn ;
@@ -722,6 +729,7 @@ begin
   mTemp.Free ;
   mAllSQL.Free ;
 end;
+
 
 procedure TTCPMServer.SetQueryParams(var mQuery: TZQuery; var mParams: TdgsMemTable);
 var
