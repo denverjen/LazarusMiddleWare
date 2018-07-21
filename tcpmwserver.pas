@@ -4,10 +4,6 @@ unit tcpmwserver;
 
 interface
 
-{
-  tcpmwserver version : 0.2
-  Date : 23/06/2018
-}
 
 uses
   Classes, SysUtils, FileUtil, ZConnection, ZDataset, ZCompatibility ,
@@ -15,7 +11,7 @@ uses
 
 
 Const
-  SERVER_VERSION = '0.2.2' ;
+  SERVER_VERSION = '0.2.3' ;
 
 type
   TMyContext = class
@@ -61,8 +57,11 @@ type
     // __sqlcall
     procedure NoParamSelectSQL( mArgsStream, mResultStream : TMemoryStream ) ;
     procedure NoParamExecSQL( mArgsStream, mResultStream : TMemoryStream ) ;
+    procedure NoParamInsertWithLastID( mArgsStream, mResultStream : TMemoryStream ) ;
     procedure ParamSelectSQL( mArgsStream, mResultStream : TMemoryStream ) ;
     procedure ParamExecSQL( mArgsStream, mResultStream : TMemoryStream ) ;
+    procedure ParamInsertWithLastID( mArgsStream, mResultStream : TMemoryStream ) ;
+
   public
     { public declarations }
     pLogMode : Boolean ; //  True = use pLogMessage to send lon
@@ -468,6 +467,10 @@ begin
     ParamSelectSQL( mArgsStream , mResultStream )
   else if mCName = 'PARAMEXECSQL' then
     ParamExecSQL(mArgsStream , mResultStream )
+  else if mCName = 'NOPARAMINSERTWITHLASTID' then
+    NoParamInsertWithLastID(mArgsStream , mResultStream )
+  else if mCNAME = 'PARAMINSERTWITHLASTID' then
+    NoParamInsertWithLastID(mArgsStream , mResultStream )
   else
     begin
     // pAddLog( 'SQL-' + mCName + ' Not Found !' ) ;
@@ -559,6 +562,54 @@ begin
   end;
 end;
 
+procedure TTCPMServer.NoParamInsertWithLastID(mArgsStream, mResultStream: TMemoryStream);
+var
+  mConn : TZConnection ;
+  mQuery : TZQuery ;
+  mError,mAlias : String ;
+  mByte : Byte ;
+  mSize : LongInt ;
+  mSQL,mLastID : String ;
+  mData : TdgsMemTable ;
+begin
+  mArgsStream.Read( mByte, 1 ) ;  // 88  <- Array
+  mArgsStream.Read( mSize, SizeOf( mSize ) ) ;  // Size of Array = 3
+  mAlias := dgStreamToStr( mArgsStream ) ;  // The first parameter is string, Alias
+  mSQL := dgStreamToStr( mArgsStream ) ; //
+  mLastID := dgStreamToStr( mArgsStream ) ; //
+  AddLog( 'Client SQL : ' + mSQL, 1 ) ;
+  AddLog( 'Clinet LastID : ' + mLastID, 1 ) ;
+  CreateDBConnection( mConn, mAlias ) ;
+  mQuery := TZQuery.Create( Nil ) ;
+  mQuery.Connection := mConn ;
+  mData := TdgsMemTable.Create( Nil ) ;
+  mError := '--' ;
+  dgStrToStream( mError, mResultStream ) ;
+  Try
+    Try
+     mQuery.SQL.Text := mSQL ;
+     mQuery.ExecSQL ;
+     // MySQL : select last_insert_id() as id
+     mQuery.SQL.Text := mLastID ;
+     mQuery.Active := True ;
+     CopyStructToMT( TDataSet( mQuery ), mData ) ;
+     CopyAllRecord( TDataSet( mQuery ), mData ) ;
+     dgStrToStream(  mData.Base64AllData, mResultStream )  ;
+    Except
+      On E: Exception do
+        begin
+         mError := 'Server Error : ' + E.Message ;
+         mResultStream.clear ;
+         dgStrToStream( mError, mResultStream ) ;
+        end;
+    end;
+  finally
+    mData.Free ;
+    mConn.Free ;
+    mQuery.Free ;
+  end;
+end;
+
 procedure TTCPMServer.ParamSelectSQL(mArgsStream, mResultStream: TMemoryStream);
 var
   mConn : TZConnection ;
@@ -644,6 +695,55 @@ begin
       end;
     finally
       dgIntegerToStream( mNoOfRowaffected,mResultStream ) ;
+      mConn.Free ;
+      mQuery.Free ;
+      mParams.Free ;
+    end;
+end;
+
+procedure TTCPMServer.ParamInsertWithLastID(mArgsStream, mResultStream: TMemoryStream);
+var
+  mConn : TZConnection ;
+  mQuery : TZQuery ;
+  mError,mAlias : String ;
+  mByte : Byte ;
+  mSize : LongInt ;
+  mSQL,mLastID : String ;
+  mParams,mData : TdgsMemTable ;
+begin
+  mArgsStream.Read( mByte, 1 ) ;  // 88  <- Array
+  mArgsStream.Read( mSize, SizeOf( mSize ) ) ;  // Size of Array = 4
+  mAlias := dgStreamToStr( mArgsStream ) ;  // The first parameter is string, Alias
+  mSQL := dgStreamToStr( mArgsStream ) ; // The secord parameter is the SQL
+  mLastID := dgStreamToStr( mArgsStream ) ;
+  mParams := TdgsMemTable.Create( nil ) ;
+  mParams.Base64AllData := dgStreamToStr( mArgsStream ) ; // The 4th Base64AllData, Params
+  CreateDBConnection( mConn, mAlias ) ;
+  mQuery := TZQuery.Create( Nil ) ;
+  mQuery.Connection := mConn ;
+  mData := TdgsMemTable.Create( Self ) ;
+  mError := '--' ;
+  dgStrToStream( mError, mResultStream ) ;
+    Try
+      Try
+       mQuery.SQL.Text := mSQL ;
+       SetQueryParams( mQuery, mParams ) ;
+       mQuery.ExecSQL ;
+       mQuery.SQL.Text := mLastID ;
+       mQuery.Active := True ;
+       CopyStructToMT( TDataSet( mQuery ), mData ) ;
+       CopyAllRecord( TDataSet( mQuery ), mData ) ;
+       dgStrToStream(  mData.Base64AllData, mResultStream )  ;
+     Except
+        On E: Exception do
+          begin
+           mError := 'Server Error : ' + E.Message ;
+           mResultStream.clear ;
+           dgStrToStream( mError, mResultStream ) ;
+          end;
+      end;
+    finally
+      mData.Free ;
       mConn.Free ;
       mQuery.Free ;
       mParams.Free ;

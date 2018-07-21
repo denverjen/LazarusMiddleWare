@@ -51,6 +51,8 @@ Type
 procedure CopyStructToMT( var mDataSet: TDataSet; var mMem: TdgsMemtable);
 procedure CopyOneRecord(var mDataSet: TDataSet; var mMem: TdgsMemtable);
 procedure CopyAllRecord(var mDataSet: TDataSet; var mMem: TdgsMemtable);
+procedure CopyOneMemRecord(var mDataSet, mMem: TdgsMemtable);
+procedure CopyAllMemRecord(var mDataSet, mMem: TdgsMemtable);
 procedure CopyMemTableStructure( var mDest , mSource : TdgsMemtable ; mList : String ) ;
 procedure CopyMemTableFullStructure( var mDest , mSource : TdgsMemtable ) ;
 function Base64StreamToString( AStream : TMemoryStream ; ASize : LongInt ) : String ;
@@ -138,6 +140,40 @@ begin
     mMem.Append ;
     mMem.Edit ;
     CopyOneRecord( mDataSet,mMem ) ;
+    mMem.Post ;
+    mDataSet.Next ;
+    end ;
+end;
+
+procedure CopyOneMemRecord(var mDataSet, mMem: TdgsMemtable);
+var
+  i,lCount : Integer ;
+  mFieldName : String ;
+  mFieldType : TFieldType ;
+begin
+ lCount := mMem.FieldCount ;
+  for i := 0 to lCount - 1 do
+    begin
+    mFieldName := mMem.Fields[ i ].FieldName ;
+    mFieldType := mMem.FieldDefs[ i ].DataType ;
+    if mFieldType = ftFloat then
+      mMem.FieldByName( mFieldName ).AsFloat := mDataSet.FieldByName( mFieldName ).AsFloat
+    else
+      mMem.FieldByName( mFieldName ).Assign( mDataSet.FieldByName( mFieldName ) ) ;
+    end ;
+end;
+
+procedure CopyAllMemRecord(var mDataSet, mMem: TdgsMemtable);
+var
+  lCount : Integer ;
+begin
+  lCount := mDataSet.RecordCount ;
+  mDataSet.First ;
+  while not mDataSet.Eof do
+    begin
+    mMem.Append ;
+    mMem.Edit ;
+    CopyOneMemRecord( mDataSet,mMem ) ;
     mMem.Post ;
     mDataSet.Next ;
     end ;

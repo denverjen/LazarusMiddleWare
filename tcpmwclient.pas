@@ -16,7 +16,7 @@ uses
   ZStoredProcedure ;
 
 Const
-  CLIENT_VERSION = '0.2.2' ;
+  CLIENT_VERSION = '0.2.3' ;
 
 
 type
@@ -42,6 +42,8 @@ type
     function DBSelect( ASQL, AParaBase64AllData : String ) : String ;
     function DBExecSQL( ASQL : String ) : Integer ;
     function DBExecSQL( ASQL, AParaBase64AllData : String ) : Integer ;
+    function DBInsertWithLastID( ASQL, ALastID : String ) : String ;
+    function DBInsertWithLastID( ASQL, ALastID, AParaBase64AllData : String ) : String ;
     function GetServerVersion : String ;
     function GetClientVersion : String ;
     function GetServerDateTime : TDateTime ;
@@ -58,11 +60,17 @@ type
     function DBServerSelect( ASQL, AParaBase64AllData : String ) : String ;
     function DBServerExecSQL( ASQL : String ) : Integer ;
     function DBServerExecSQL( ASQL, AParaBase64AllData : String ) : Integer ;
+    function DBServerInsertWithLastID( ASQL, ALastID  : String ) : String ;
+    function DBServerInsertWithLastID( ASQL, ALastID, AParaBase64AllData  : String ) : String ;
+
     //
     function DBLocalSelect( ASQL : String ) : String ;
     function DBLocalSelect( ASQL, AParaBase64AllData : String ) : String ;
     function DBLocalExecSQL( ASQL : String ) : Integer ;
     function DBLocalExecSQL( ASQL, AParaBase64AllData : String ) : Integer ;
+    function DBLocalInsertWithLastID( ASQL, ALastID  : String ) : String ;
+    function DBLocalInsertWithLastID( ASQL, ALastID, AParaBase64AllData  : String ) : String ;
+
     procedure SetQueryParams( var AQuery : TZQuery ; ABase64AllData : String ) ;
     //
     function GetLocalFileList( APattern : String ) : String ;
@@ -208,6 +216,22 @@ begin
     Result := DBServerExecSQL( ASQL, AParaBase64AllData )
   else
     Result := DBLocalExecSQL( ASQL, AParaBase64AllData ) ;
+end;
+
+function TTCPmclient.DBInsertWithLastID(ASQL, ALastID: String): String;
+begin
+  if pLocalMode = 0 then
+    Result := DBServerInsertWithLastID( ASQL, ALastID )
+  else
+    Result := DBLocalInsertWithLastID( ASQL, ALastID ) ;
+end;
+
+function TTCPmclient.DBInsertWithLastID(ASQL, ALastID, AParaBase64AllData: String): String;
+begin
+  if pLocalMode = 0 then
+    Result := DBServerInsertWithLastID( ASQL, ALastID, AParaBase64AllData )
+  else
+    Result := DBLocalInsertWithLastID( ASQL, ALastID, AParaBase64AllData ) ;
 end;
 
 function TTCPmclient.GetServerVersion: String;
@@ -491,6 +515,36 @@ begin
    end;
 end;
 
+function TTCPmclient.DBServerInsertWithLastID(ASQL, ALastID: String): String;
+var
+  ms : TMemoryStream ;
+begin
+  ms := TMemoryStream.Create ;
+  Try
+    RequestService( 'SQL','NOPARAMINSERTWITHLASTID',[ pServerAlias, ASQL, ALastID ],ms ) ;
+    pLastError := dgStreamToStr( ms ) ;
+    if pLastError = '--' then
+      Result := dgStreamToStr( ms ) ;
+  finally
+    ms.Free ;
+  end;
+end;
+
+function TTCPmclient.DBServerInsertWithLastID(ASQL, ALastID, AParaBase64AllData: String): String;
+var
+  ms : TMemoryStream ;
+begin
+  ms := TMemoryStream.Create ;
+  Try
+    RequestService( 'SQL','PARAMINSERTWITHLASTID',[ pServerAlias, ASQL, ALastID, AParaBase64AllData ],ms ) ;
+    pLastError := dgStreamToStr( ms ) ;
+    if pLastError = '--' then
+      Result := dgStreamToStr( ms ) ;
+  finally
+    ms.Free ;
+  end;
+end;
+
 function TTCPmclient.DBLocalSelect(ASQL: String): String;
 var
   mConn : TZConnection ;
@@ -606,6 +660,88 @@ begin
      mQuery.Free ;
      mConn.Free ;
    end;
+end;
+
+function TTCPmclient.DBLocalInsertWithLastID(ASQL, ALastID: String): String;
+var
+  mConn : TZConnection ;
+  mQuery : TZQuery ;
+  mData : TdgsMemTable ;
+begin
+  mData := TdgsMemTable.Create( Self ) ;
+  CreateLocalDBConnection( mConn  ) ;
+  mQuery := TZQuery.Create( Nil ) ;
+  Try
+    mQuery.Connection := mConn ;
+    mQuery.SQL.Text := ASQL ;
+    Try
+      mQuery.ExecSQL;
+      pLastError := '--' ;
+      Try
+        mQuery.SQL.Text := ALastID ;
+        mQuery.Active := True ;
+        CopyStructToMT( TDataSet( mQuery ), mData ) ;
+        CopyAllRecord( TDataSet( mQuery ), mData ) ;
+        Result := mData.Base64AllData ;
+      Except
+        On E: Exception do
+          begin
+          pLastError := E.Message ;
+          end;
+      end;
+    Except
+      On E: Exception do
+        begin
+        pLastError := E.Message ;
+        end;
+    end;
+  finally
+    mQuery.Free ;
+    mConn.Free ;
+    mData.Free ;
+  end;
+end;
+
+function TTCPmclient.DBLocalInsertWithLastID(ASQL, ALastID, AParaBase64AllData: String): String;
+var
+  mConn : TZConnection ;
+  mQuery : TZQuery ;
+  mData : TdgsMemTable ;
+begin
+  mData := TdgsMemTable.Create( Self ) ;
+  CreateLocalDBConnection( mConn  ) ;
+  mQuery := TZQuery.Create( Nil ) ;
+  Try
+    mQuery.Connection := mConn ;
+    mQuery.SQL.Text := ASQL ;
+    SetQueryParams( mQuery, AParaBase64AllData ) ;
+    Try
+      mQuery.ExecSQL;
+      pLastError := '--' ;
+      Try
+        mQuery.SQL.Text := ALastID ;
+        mQuery.Active := True ;
+        CopyStructToMT( TDataSet( mQuery ), mData ) ;
+        CopyAllRecord( TDataSet( mQuery ), mData ) ;
+        Result := mData.Base64AllData ;
+      Except
+         On E: Exception do
+          begin
+          pLastError := E.Message ;
+          end;
+      end;
+    Except
+      On E: Exception do
+       begin
+       pLastError := E.Message ;
+       end;
+    end;
+  finally
+    mQuery.Free ;
+    mConn.Free ;
+    mData.Free ;
+  end;
+
 end;
 
 procedure TTCPmclient.SetQueryParams(var AQuery: TZQuery; ABase64AllData: String
