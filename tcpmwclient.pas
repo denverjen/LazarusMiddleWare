@@ -471,11 +471,11 @@ begin
          mTemp.Free ;
          mAllSQL.Free ;
        end;
-       end
-     else
-       begin
-       Result := 'DB Client Lib : ' + pLocalLibPath + '  not found !' ;
-       end;
+     end ;
+     end
+   else
+     begin
+     Result := 'DB Client Lib : ' + pLocalLibPath + '  not found !' ;
      end;
 
 end;
