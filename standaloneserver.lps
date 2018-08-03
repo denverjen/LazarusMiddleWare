@@ -1,0 +1,150 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CONFIG>
+  <ProjectSession>
+    <Version Value="10"/>
+    <BuildModes Active="Default"/>
+    <Units Count="2">
+      <Unit0>
+        <Filename Value="standaloneserver.lpr"/>
+        <IsPartOfProject Value="True"/>
+        <TopLine Value="25"/>
+        <CursorPos X="51" Y="23"/>
+        <UsageCount Value="26"/>
+        <Loaded Value="True"/>
+      </Unit0>
+      <Unit1>
+        <Filename Value="tcpmwserver.pas"/>
+        <IsPartOfProject Value="True"/>
+        <HasResources Value="True"/>
+        <IsVisibleTab Value="True"/>
+        <EditorIndex Value="1"/>
+        <TopLine Value="775"/>
+        <CursorPos X="40" Y="799"/>
+        <UsageCount Value="26"/>
+        <Loaded Value="True"/>
+      </Unit1>
+    </Units>
+    <JumpHistory Count="30" HistoryIndex="29">
+      <Position1>
+        <Filename Value="tcpmwserver.pas"/>
+        <Caret Line="722" Column="21" TopLine="698"/>
+      </Position1>
+      <Position2>
+        <Filename Value="tcpmwserver.pas"/>
+        <Caret Line="55" Column="32" TopLine="41"/>
+      </Position2>
+      <Position3>
+        <Filename Value="tcpmwserver.pas"/>
+        <Caret Line="498" Column="40" TopLine="492"/>
+      </Position3>
+      <Position4>
+        <Filename Value="tcpmwserver.pas"/>
+        <Caret Line="540" Column="21" TopLine="516"/>
+      </Position4>
+      <Position5>
+        <Filename Value="tcpmwserver.pas"/>
+        <Caret Line="583" Column="21" TopLine="559"/>
+      </Position5>
+      <Position6>
+        <Filename Value="tcpmwserver.pas"/>
+        <Caret Line="631" Column="21" TopLine="607"/>
+      </Position6>
+      <Position7>
+        <Filename Value="tcpmwserver.pas"/>
+        <Caret Line="677" Column="21" TopLine="653"/>
+      </Position7>
+      <Position8>
+        <Filename Value="tcpmwserver.pas"/>
+        <Caret Line="722" Column="21" TopLine="698"/>
+      </Position8>
+      <Position9>
+        <Filename Value="tcpmwserver.pas"/>
+        <Caret Line="796" Column="18" TopLine="779"/>
+      </Position9>
+      <Position10>
+        <Filename Value="tcpmwserver.pas"/>
+        <Caret Line="841" Column="10" TopLine="816"/>
+      </Position10>
+      <Position11>
+        <Filename Value="tcpmwserver.pas"/>
+        <Caret Line="838" Column="66" TopLine="823"/>
+      </Position11>
+      <Position12>
+        <Filename Value="tcpmwserver.pas"/>
+        <Caret Line="837" TopLine="814"/>
+      </Position12>
+      <Position13>
+        <Filename Value="tcpmwserver.pas"/>
+        <Caret Line="7" Column="109"/>
+      </Position13>
+      <Position14>
+        <Filename Value="tcpmwserver.pas"/>
+        <Caret Line="55" Column="32" TopLine="31"/>
+      </Position14>
+      <Position15>
+        <Filename Value="tcpmwserver.pas"/>
+        <Caret Line="498" Column="31" TopLine="489"/>
+      </Position15>
+      <Position16>
+        <Filename Value="tcpmwserver.pas"/>
+        <Caret Line="545" Column="21" TopLine="521"/>
+      </Position16>
+      <Position17>
+        <Filename Value="tcpmwserver.pas"/>
+        <Caret Line="588" Column="21" TopLine="564"/>
+      </Position17>
+      <Position18>
+        <Filename Value="tcpmwserver.pas"/>
+        <Caret Line="636" Column="21" TopLine="612"/>
+      </Position18>
+      <Position19>
+        <Filename Value="tcpmwserver.pas"/>
+        <Caret Line="682" Column="21" TopLine="658"/>
+      </Position19>
+      <Position20>
+        <Filename Value="tcpmwserver.pas"/>
+        <Caret Line="727" Column="21" TopLine="703"/>
+      </Position20>
+      <Position21>
+        <Filename Value="tcpmwserver.pas"/>
+        <Caret Line="55" Column="32" TopLine="31"/>
+      </Position21>
+      <Position22>
+        <Filename Value="tcpmwserver.pas"/>
+        <Caret Line="498" Column="31" TopLine="474"/>
+      </Position22>
+      <Position23>
+        <Filename Value="tcpmwserver.pas"/>
+        <Caret Line="726" TopLine="704"/>
+      </Position23>
+      <Position24>
+        <Filename Value="tcpmwserver.pas"/>
+        <Caret Line="55" Column="32" TopLine="44"/>
+      </Position24>
+      <Position25>
+        <Filename Value="tcpmwserver.pas"/>
+        <Caret Line="498" Column="31" TopLine="474"/>
+      </Position25>
+      <Position26>
+        <Filename Value="tcpmwserver.pas"/>
+        <Caret Line="545" Column="31" TopLine="521"/>
+      </Position26>
+      <Position27>
+        <Filename Value="tcpmwserver.pas"/>
+        <Caret Line="593" Column="31" TopLine="569"/>
+      </Position27>
+      <Position28>
+        <Filename Value="tcpmwserver.pas"/>
+        <Caret Line="646" Column="31" TopLine="622"/>
+      </Position28>
+      <Position29>
+        <Filename Value="tcpmwserver.pas"/>
+        <Caret Line="695" Column="31" TopLine="671"/>
+      </Position29>
+      <Position30>
+        <Filename Value="tcpmwserver.pas"/>
+        <Caret Line="745" Column="31" TopLine="721"/>
+      </Position30>
+    </JumpHistory>
+  </ProjectSession>
+</CONFIG>
