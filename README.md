@@ -1,6 +1,6 @@
 # LazarusMiddleWare
 
-Version 0.2.3
+Version 0.2.31
 
 Simple Middle Ware for Lazarus. Read and Update Dataset via TCP/IP 
 Inlcude Server Side Component and Client Side Component.
