@@ -16,7 +16,7 @@ uses
   ZStoredProcedure ;
 
 Const
-  CLIENT_VERSION = '0.2.3' ;
+  CLIENT_VERSION = '0.2.31' ;
 
 
 type
@@ -38,6 +38,7 @@ type
     procedure DisConnect ;
     procedure Login( AKey : String ) ;
     procedure RequestService( AService, ACName: String; const Args: array of Variant; AResult: TMemoryStream);
+    function ErrorBase64AllData( AError : String ) : String ;
     function DBSelect( ASQL : String ) : String ;
     function DBSelect( ASQL, AParaBase64AllData : String ) : String ;
     function DBExecSQL( ASQL : String ) : Integer ;
@@ -55,7 +56,7 @@ type
     procedure SetLocalMode( ADBType,AHost,AUser,APassword,ADBName,ACodePage,ASQL,ALibPath,ADataPath : String ; APort : Integer ) ;
   private
     { private declarations }
-    procedure CreateLocalDBConnection( var AConn : TZConnection ) ;
+    function CreateLocalDBConnection( var AConn : TZConnection ) : String ;
     function DBServerSelect( ASQL : String ) : String ;
     function DBServerSelect( ASQL, AParaBase64AllData : String ) : String ;
     function DBServerExecSQL( ASQL : String ) : Integer ;
@@ -184,6 +185,21 @@ begin
     mOutStream.Free ;
     mInStream.Free ;
   end;
+end;
+
+function TTCPmclient.ErrorBase64AllData(AError: String): String;
+var
+  MT : TdgsMemTable ;
+begin
+  MT := TdgsMemTable.Create( Self ) ;
+  MT.FieldDefs.Add( 'error',ftString, 255 ) ;
+  MT.CreateDataset ;
+  MT.Append ;
+  MT.Edit ;
+  MT.FieldByName( 'error' ).AsString := AError ;
+  MT.Post ;
+  Result := MT.Base64AllData ;
+  MT.Free ;
 end;
 
 function TTCPmclient.DBSelect(ASQL: String): String;
@@ -392,7 +408,7 @@ begin
   pLocalSQL := ASQL ;
 end;
 
-procedure TTCPmclient.CreateLocalDBConnection(var AConn: TZConnection);
+function TTCPmclient.CreateLocalDBConnection(var AConn: TZConnection) : String ;
 var
   mLocalSqlite : String ;
   mQuery : TZQuery ;
@@ -407,50 +423,59 @@ begin
    else
      AConn.Database := pLocalDBName ;
 //    if Assigned( pAddLog ) then pAddLog( AConn.Database ) ;
-   AConn.HostName := pLocalDBHost ;
-   AConn.User := pLocalDBUser ;
-   AConn.Password := pLocalDBPass ;
-   AConn.Protocol := pLocalDBType ;
-   AConn.Port := pLocalDBPort ;
 
-   if UpperCase( pLocalCodePage)  = 'UTF8' then
-     AConn.ControlsCodePage := cCP_UTF8 ;
-   if UpperCase( pLocalCodePage)  = 'UTF16' then
-     AConn.ControlsCodePage := cCP_UTF16 ;
-   AConn.LibraryLocation := pLocalLibPath ;
-   AConn.Connect ;
-   if Trim( pLocalSQL ) <> '' then
+   // Check For db lib
+   if FileExists( pLocalLibPath ) then
      begin
-     mAllSQL := TStringList.Create ;
-     mTemp := TStringList.Create ;
-     mQuery := TZQuery.Create( Self ) ;
-     Try
-     mAllSQL.Text := pLocalSQL ;
-     mCount := mAllSQL.Count ;
-     for i := 0 to mCount - 1 do
+     Result := '' ;
+     AConn.HostName := pLocalDBHost ;
+     AConn.User := pLocalDBUser ;
+     AConn.Password := pLocalDBPass ;
+     AConn.Protocol := pLocalDBType ;
+     AConn.Port := pLocalDBPort ;
+
+     if UpperCase( pLocalCodePage)  = 'UTF8' then
+       AConn.ControlsCodePage := cCP_UTF8 ;
+     if UpperCase( pLocalCodePage)  = 'UTF16' then
+       AConn.ControlsCodePage := cCP_UTF16 ;
+     AConn.LibraryLocation := pLocalLibPath ;
+     AConn.Connect ;
+     if Trim( pLocalSQL ) <> '' then
        begin
-       mStr := Trim( mAllSQL.Strings[ i ] ) ;
-       if mStr <> '' then
-         mTemp.Add( mStr ) ;
-       mLast := Copy( mStr, Length( mStr ) , 1 ) ;
-       if mLast = ';' then
+       mAllSQL := TStringList.Create ;
+       mTemp := TStringList.Create ;
+       mQuery := TZQuery.Create( Self ) ;
+       Try
+       mAllSQL.Text := pLocalSQL ;
+       mCount := mAllSQL.Count ;
+       for i := 0 to mCount - 1 do
+         begin
+         mStr := Trim( mAllSQL.Strings[ i ] ) ;
+         if mStr <> '' then
+           mTemp.Add( mStr ) ;
+         mLast := Copy( mStr, Length( mStr ) , 1 ) ;
+         if mLast = ';' then
+           begin
+           mQuery.SQL.Text := mTemp.Text ;
+           mQuery.ExecSQL ;
+           mTemp.Clear ;
+           end;
+         end;
+       if Trim( mTemp.Text ) <> '' then
          begin
          mQuery.SQL.Text := mTemp.Text ;
          mQuery.ExecSQL ;
-         mTemp.Clear ;
          end;
+       finally
+         mQuery.Free ;
+         mTemp.Free ;
+         mAllSQL.Free ;
        end;
-     if Trim( mTemp.Text ) <> '' then
+       end
+     else
        begin
-       mQuery.SQL.Text := mTemp.Text ;
-       mQuery.ExecSQL ;
+       Result := 'DB Client Lib : ' + pLocalLibPath + '  not found !' ;
        end;
-     finally
-       mQuery.Free ;
-       mTemp.Free ;
-       mAllSQL.Free ;
-     end;
-
      end;
 
 end;
@@ -464,7 +489,9 @@ begin
     RequestService( 'SQL','NOPARAMSELECTSQL',[ pServerAlias, ASQL ],ms ) ;
     pLastError := dgStreamToStr( ms ) ;
     if pLastError = '--' then
-      Result := dgStreamToStr( ms ) ;
+      Result := dgStreamToStr( ms )
+    else
+      Result := ErrorBase64AllData( pLastError ) ;
   finally
     ms.Free ;
   end;
@@ -479,7 +506,9 @@ begin
     RequestService( 'SQL','PARAMSELECTSQL',[ pServerAlias, ASQL, AParaBase64AllData ],ms ) ;
     pLastError := dgStreamToStr( ms ) ;
     if pLastError = '--' then
-      Result := dgStreamToStr( ms ) ;
+      Result := dgStreamToStr( ms )
+    else
+      Result := ErrorBase64AllData( pLastError ) ;
   finally
     ms.Free ;
   end;
@@ -494,7 +523,9 @@ begin
     RequestService( 'SQL','NOPARAMEXECSQL',[ pServerAlias, ASQL ],ms ) ;
     pLastError := dgStreamToStr( ms ) ;
     if pLastError = '--' then
-      Result := dgStreamToInteger( ms ) ;
+      Result := dgStreamToInteger( ms )
+    else
+      Result := 0 ;
   finally
     ms.Free ;
   end;
@@ -509,7 +540,9 @@ begin
     RequestService( 'SQL','PARAMEXECSQL',[ pServerAlias, ASQL, AParaBase64AllData ],ms ) ;
     pLastError := dgStreamToStr( ms ) ;
     if pLastError = '--' then
-      Result := dgStreamToInteger( ms ) ;
+      Result := dgStreamToInteger( ms )
+    else
+      Result := 0 ;
    finally
      ms.Free ;
    end;
@@ -524,7 +557,9 @@ begin
     RequestService( 'SQL','NOPARAMINSERTWITHLASTID',[ pServerAlias, ASQL, ALastID ],ms ) ;
     pLastError := dgStreamToStr( ms ) ;
     if pLastError = '--' then
-      Result := dgStreamToStr( ms ) ;
+      Result := dgStreamToStr( ms )
+    else
+      Result := ErrorBase64AllData( pLastError ) ;
   finally
     ms.Free ;
   end;
@@ -539,7 +574,9 @@ begin
     RequestService( 'SQL','PARAMINSERTWITHLASTID',[ pServerAlias, ASQL, ALastID, AParaBase64AllData ],ms ) ;
     pLastError := dgStreamToStr( ms ) ;
     if pLastError = '--' then
-      Result := dgStreamToStr( ms ) ;
+      Result := dgStreamToStr( ms )
+    else
+      Result := ErrorBase64AllData( pLastError ) ;
   finally
     ms.Free ;
   end;
@@ -551,30 +588,35 @@ var
   mQuery : TZQuery ;
   mData : TdgsMemTable ;
 begin
-  mData := TdgsMemTable.Create( Self ) ;
-  CreateLocalDBConnection( mConn  ) ;
-  mQuery := TZQuery.Create( Nil ) ;
-  Try
-    mQuery.Connection := mConn ;
-    mQuery.SQL.Text := ASQL ;
-    pLastError := '--' ;
+  pLastError := CreateLocalDBConnection( mConn  ) ;
+  if pLastError = '' then
+    begin
+    mData := TdgsMemTable.Create( Self ) ;
+    mQuery := TZQuery.Create( Nil ) ;
     Try
-      mQuery.Active := True ;
-      CopyStructToMT( TDataSet( mQuery ), mData ) ;
-      CopyAllRecord( TDataSet( mQuery ), mData ) ;
-      Result := mData.Base64AllData ;
-    Except
-      On E: Exception do
-        begin
-        pLastError := E.Message ;
+      mQuery.Connection := mConn ;
+      mQuery.SQL.Text := ASQL ;
+      pLastError := '--' ;
+      Try
+        mQuery.Active := True ;
+        CopyStructToMT( TDataSet( mQuery ), mData ) ;
+        CopyAllRecord( TDataSet( mQuery ), mData ) ;
+        Result := mData.Base64AllData ;
+      Except
+        On E: Exception do
+          begin
+          pLastError := E.Message ;
+          Result := ErrorBase64AllData( pLastError ) ;
+          end;
         end;
+    finally
+      mQuery.Free ;
+      mData.Free ;
+      mConn.Free ;
     end;
-  finally
-    mQuery.Free ;
-    mConn.Free ;
-    mData.Free ;
-  end;
-
+    end
+  else
+   Result := ErrorBase64AllData( pLastError ) ;
 end;
 
 function TTCPmclient.DBLocalSelect(ASQL, AParaBase64AllData: String): String;
@@ -583,30 +625,36 @@ var
   mQuery : TZQuery ;
   mData : TdgsMemTable ;
 begin
-  mData := TdgsMemTable.Create( Self ) ;
-  CreateLocalDBConnection( mConn  ) ;
-  mQuery := TZQuery.Create( Nil ) ;
-  Try
-    mQuery.Connection := mConn ;
-    mQuery.SQL.Text := ASQL ;
-    pLastError := '--' ;
+  pLastError := CreateLocalDBConnection( mConn  ) ;
+  if pLastError = '' then
+    begin
+    mQuery := TZQuery.Create( Nil ) ;
+    mData := TdgsMemTable.Create( Self ) ;
     Try
-      SetQueryParams( mQuery, AParaBase64AllData ) ;
-      mQuery.Active := True ;
-      CopyStructToMT( TDataSet( mQuery ), mData ) ;
-      CopyAllRecord( TDataSet( mQuery ), mData ) ;
-      Result := mData.Base64AllData ;
-    Except
-      On E: Exception do
-        begin
-        pLastError := E.Message ;
+      mQuery.Connection := mConn ;
+      mQuery.SQL.Text := ASQL ;
+      pLastError := '--' ;
+      Try
+        SetQueryParams( mQuery, AParaBase64AllData ) ;
+        mQuery.Active := True ;
+        CopyStructToMT( TDataSet( mQuery ), mData ) ;
+        CopyAllRecord( TDataSet( mQuery ), mData ) ;
+        Result := mData.Base64AllData ;
+      Except
+        On E: Exception do
+          begin
+          pLastError := E.Message ;
+          Result := ErrorBase64AllData( pLastError ) ;
+          end;
         end;
+    finally
+      mQuery.Free ;
+      mData.Free ;
+      mConn.Free ;
     end;
-  finally
-    mConn.Free ;
-    mQuery.Free ;
-    mData.Free ;
-  end;
+    end
+  else
+    Result := ErrorBase64AllData( pLastError ) ;
 end;
 
 function TTCPmclient.DBLocalExecSQL(ASQL: String): Integer;
@@ -614,25 +662,30 @@ var
   mConn : TZConnection ;
   mQuery : TZQuery ;
 begin
-   CreateLocalDBConnection( mConn  ) ;
-   mQuery := TZQuery.Create( Self ) ;
-   mQuery.Connection := mConn ;
-   pLastError := '--' ;
-   Try
-     mQuery.SQL.Text := ASQL ;
+   pLastError := CreateLocalDBConnection( mConn  ) ;
+   if pLastError = '' then
+     begin
+     mQuery := TZQuery.Create( Self ) ;
+     mQuery.Connection := mConn ;
+     pLastError := '--' ;
      Try
-       mQuery.ExecSQL ;
-       Result := mQuery.RowsAffected ;
-     except
-       On E: Exception do
+       mQuery.SQL.Text := ASQL ;
+       Try
+         mQuery.ExecSQL ;
+         Result := mQuery.RowsAffected ;
+       except
+         On E: Exception do
          begin
          pLastError := E.Message ;
          end;
+       end;
+     finally
+       mQuery.Free ;
+       mConn.Free ;
      end;
-   finally
-     mQuery.Free ;
-     mConn.Free ;
-   end;
+     end
+   else
+     Result := 0 ;
 end;
 
 function TTCPmclient.DBLocalExecSQL(ASQL, AParaBase64AllData: String): Integer;
@@ -640,26 +693,32 @@ var
   mConn : TZConnection ;
   mQuery : TZQuery ;
 begin
-   CreateLocalDBConnection( mConn  ) ;
-   mQuery := TZQuery.Create( Self ) ;
-   mQuery.Connection := mConn ;
-   pLastError := '--' ;
-   Try
-     mQuery.SQL.Text := ASQL ;
+   pLastError := CreateLocalDBConnection( mConn  ) ;
+   if pLastError = '' then
+     begin
+     mQuery := TZQuery.Create( Self ) ;
+     mQuery.Connection := mConn ;
+     pLastError := '--' ;
      Try
-       SetQueryParams( mQuery, AParaBase64AllData ) ;
-       mQuery.ExecSQL ;
-       Result := mQuery.RowsAffected ;
-     except
+       mQuery.SQL.Text := ASQL ;
+       Try
+         SetQueryParams( mQuery, AParaBase64AllData ) ;
+         mQuery.ExecSQL ;
+         Result := mQuery.RowsAffected ;
+       except
        On E: Exception do
          begin
          pLastError := E.Message ;
+         Result := 0 ;
          end;
+       end;
+     finally
+       mQuery.Free ;
+       mConn.Free ;
      end;
-   finally
-     mQuery.Free ;
-     mConn.Free ;
-   end;
+     end
+   else
+     Result := 0 ;
 end;
 
 function TTCPmclient.DBLocalInsertWithLastID(ASQL, ALastID: String): String;
@@ -668,10 +727,12 @@ var
   mQuery : TZQuery ;
   mData : TdgsMemTable ;
 begin
-  mData := TdgsMemTable.Create( Self ) ;
-  CreateLocalDBConnection( mConn  ) ;
-  mQuery := TZQuery.Create( Nil ) ;
-  Try
+  pLastError := CreateLocalDBConnection( mConn ) ;
+  if pLastError = '' then
+    begin
+    mData := TdgsMemTable.Create( Self ) ;
+    mQuery := TZQuery.Create( Nil ) ;
+    Try
     mQuery.Connection := mConn ;
     mQuery.SQL.Text := ASQL ;
     Try
@@ -687,19 +748,23 @@ begin
         On E: Exception do
           begin
           pLastError := E.Message ;
+          Result := ErrorBase64AllData( pLastError ) ;
           end;
-      end;
-    Except
-      On E: Exception do
+        end;
+      Except
+        On E: Exception do
         begin
         pLastError := E.Message ;
         end;
+      end;
+    finally
+     mQuery.Free ;
+     mData.Free ;
+     mConn.Free ;
     end;
-  finally
-    mQuery.Free ;
-    mConn.Free ;
-    mData.Free ;
-  end;
+    end
+  else
+    Result := ErrorBase64AllData( pLastError ) ;
 end;
 
 function TTCPmclient.DBLocalInsertWithLastID(ASQL, ALastID, AParaBase64AllData: String): String;
@@ -708,39 +773,46 @@ var
   mQuery : TZQuery ;
   mData : TdgsMemTable ;
 begin
-  mData := TdgsMemTable.Create( Self ) ;
-  CreateLocalDBConnection( mConn  ) ;
-  mQuery := TZQuery.Create( Nil ) ;
-  Try
-    mQuery.Connection := mConn ;
-    mQuery.SQL.Text := ASQL ;
-    SetQueryParams( mQuery, AParaBase64AllData ) ;
+  pLastError := CreateLocalDBConnection( mConn  ) ;
+  if pLastError = '' then
+    begin
+    mData := TdgsMemTable.Create( Self ) ;
+    mQuery := TZQuery.Create( Nil ) ;
     Try
-      mQuery.ExecSQL;
-      pLastError := '--' ;
+      mQuery.Connection := mConn ;
+      mQuery.SQL.Text := ASQL ;
+      SetQueryParams( mQuery, AParaBase64AllData ) ;
       Try
-        mQuery.SQL.Text := ALastID ;
-        mQuery.Active := True ;
-        CopyStructToMT( TDataSet( mQuery ), mData ) ;
-        CopyAllRecord( TDataSet( mQuery ), mData ) ;
-        Result := mData.Base64AllData ;
+        mQuery.ExecSQL;
+        pLastError := '--' ;
+        Try
+          mQuery.SQL.Text := ALastID ;
+          mQuery.Active := True ;
+          CopyStructToMT( TDataSet( mQuery ), mData ) ;
+          CopyAllRecord( TDataSet( mQuery ), mData ) ;
+          Result := mData.Base64AllData ;
+        Except
+          On E: Exception do
+            begin
+            pLastError := E.Message ;
+            Result := ErrorBase64AllData( pLastError ) ;
+            end;
+        end;
       Except
-         On E: Exception do
+        On E: Exception do
           begin
           pLastError := E.Message ;
+          Result := ErrorBase64AllData( pLastError ) ;
           end;
       end;
-    Except
-      On E: Exception do
-       begin
-       pLastError := E.Message ;
-       end;
+    finally
+      mData.Free ;
+      mQuery.Free ;
+      mConn.Free ;
     end;
-  finally
-    mQuery.Free ;
-    mConn.Free ;
-    mData.Free ;
-  end;
+    end
+  else
+    Result := ErrorBase64AllData( pLastError ) ;
 
 end;
 

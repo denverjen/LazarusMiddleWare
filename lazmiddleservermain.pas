@@ -11,7 +11,7 @@ interface
 
 uses
   Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, ComCtrls,
-  StdCtrls, ExtCtrls, DBGrids, tcpmwserver, db, tcpmwclient,
+  StdCtrls, ExtCtrls, DBGrids, tcpmwserver, db, tcpmwclient, LCL,
   dbcommon, lazutf8 ;
 
 type
@@ -91,7 +91,7 @@ begin
   mServer.pLogLevel := 5 ; // All Log
   mServer.pPort := 6999 ; // Server Port ;
   mServer.SetAlias( 'testdb','mysqld-5','127.0.0.1','testrun','testpass','horse','utf8','',
-  '/usr/lib/x86_64-linux-gnu/libmysqlclient.so.20.3.9','testpath','uusdfsd',3306 ) ;
+                    '/usr/lib/x86_64-linux-gnu/libmysqlclient.so.20.3.10','testpath','uusdfsd',3306 ) ;
   mClient := Ttcpmclient.Create( Self ) ;
   MT := TdgsMemTable.Create( Self ) ;
  end;
@@ -171,7 +171,7 @@ var
 begin
   mLocalClient := Ttcpmclient.Create( Self ) ;
   mLocalClient.SetLocalMode( 'mysqld-5','127.0.0.1','testrun','testpass','horse','utf8','',
-  '/usr/lib/x86_64-linux-gnu/libmysqlclient.so.20.3.9','testpath',3306 ) ;
+  '/usr/lib/x86_64-linux-gnu/libmysqlclient.so.20.3.10','testpath',3306 ) ;
   MT.Base64AllData := mLocalClient.DBSelect( 'select * from raceday order by id desc' );
   DataSource1.DataSet := MT ;
   mLocalClient.Free ;
@@ -182,7 +182,7 @@ var
   mLocalClient : Ttcpmclient ;
 begin
   mLocalClient := Ttcpmclient.Create( Self ) ;
-  mLocalClient.SetLocalMode( 'mysqld-5','127.0.0.1','testrun','testpass','horse','utf8','','/usr/lib/x86_64-linux-gnu/libmysqlclient.so.20.3.9','testpath',3306 ) ;
+  mLocalClient.SetLocalMode( 'mysqld-5','127.0.0.1','testrun','testpass','horse','utf8','','/usr/lib/x86_64-linux-gnu/libmysqlclient.so.20.3.10','testpath',3306 ) ;
   Memo1.Lines.Add( mLocalClient.GetServerFileList('*.*') ) ;
   mLocalClient.Free ;
 end;
@@ -223,6 +223,7 @@ end;
 
 procedure TFmtMain.Button3Click(Sender: TObject);
 begin
+  // mStr := mClient.DBSelect( 'select id, wincount from raceday order by id desc limit 10' ) ;
   MT.Base64AllData := mClient.DBSelect( 'select id, wincount from raceday order by id desc limit 10' ) ;
   if mClient.pLastError = '--' then
     DataSource1.DataSet := MT

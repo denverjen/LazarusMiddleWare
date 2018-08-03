@@ -6,8 +6,12 @@
       <SessionStorage Value="InProjectDir"/>
       <MainUnit Value="0"/>
       <Title Value="Lazmiddlewareserver"/>
+      <Scaled Value="True"/>
       <ResourceType Value="res"/>
       <UseXPManifest Value="True"/>
+      <XPManifest>
+        <ExecutionLevel Value="requireAdministrator"/>
+      </XPManifest>
       <Icon Value="0"/>
     </General>
     <i18n>
@@ -69,11 +73,9 @@
       <UnitOutputDirectory Value="lib/$(TargetCPU)-$(TargetOS)"/>
     </SearchPaths>
     <Linking>
-      <Options>
-        <Win32>
-          <GraphicApplication Value="True"/>
-        </Win32>
-      </Options>
+      <Debugging>
+        <GenerateDebugInfo Value="False"/>
+      </Debugging>
     </Linking>
   </CompilerOptions>
   <Debugging>

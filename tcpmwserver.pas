@@ -11,7 +11,7 @@ uses
 
 
 Const
-  SERVER_VERSION = '0.2.3' ;
+  SERVER_VERSION = '0.2.31' ; // debug
 
 type
   TMyContext = class
@@ -42,6 +42,7 @@ type
     function AliasList : String ;
     procedure SetAlias( AAliasName,ADBType,AHost,AUser,APassword,ADBName,ACodePage,ASQL,ALibPath,ADataPath,AKey : String ; APort : Integer ) ;
     procedure AddLog( mMessage : String ; mLevel : Integer ) ;
+    function ServerVersion : String ;
   private
     { private declarations }
     DBCS,LOGCS,PROCCS : TRTLCriticalSection ;
@@ -51,7 +52,7 @@ type
     procedure __systemcall(mCName : String; mArgsStream, mResultStream: TMemoryStream);
     procedure __sqlcall(mCName : String; mArgsStream, mResultStream: TMemoryStream);
     function ErrorData(mMsg: String): String ;
-    procedure CreateDBConnection( var mConn : TZConnection ; mAlias : String  ) ;
+    function CreateDBConnection( var mConn : TZConnection ; mAlias : String  ) : String ;
     procedure SetQueryParams( var mQuery : TZQuery ; var mParams : TdgsMemTable ) ;
     function GetDataPathFileList( mDataPath, mPattern : String ) : String ;
     // __sqlcall
@@ -492,32 +493,37 @@ begin
   mArgsStream.Read( mSize, SizeOf( mSize ) ) ;  // Size of Array = 2
   mAlias := dgStreamToStr( mArgsStream ) ;  // The first parameter is string, Alias
   mSQL := dgStreamToStr( mArgsStream ) ; //
+  AddLog( 'Client Alias, SQL : ' + mAlias + ':' + mSQL, 1 ) ;
   mData := TdgsMemTable.Create( Nil ) ;
-  CreateDBConnection( mConn, mAlias ) ;
-  mQuery := TZQuery.Create( Nil ) ;
-  mQuery.Connection := mConn ;
-  mError := '--' ;
-  dgStrToStream( mError, mResultStream ) ;
-  Try
+  mError := CreateDBConnection( mConn, mAlias ) ;
+  if mError <> '' then
+    dgStrToStream( mError, mResultStream )
+  else
+    begin
+    mQuery := TZQuery.Create( Nil ) ;
+    mQuery.Connection := mConn ;
+    mError := '--' ;
+    dgStrToStream( mError, mResultStream ) ;
     Try
-     mQuery.SQL.Text := mSQL ;
-     AddLog( 'Client SQL : ' + mSQL, 1 ) ;
-     mQuery.Active := True ;
-     CopyStructToMT( TDataSet( mQuery ), mData ) ;
-     CopyAllRecord( TDataSet( mQuery ), mData ) ;
-     dgStrToStream(  mData.Base64AllData, mResultStream )  ;
-    Except
-      On E: Exception do
-        begin
-         mError := 'Server Error : ' + E.Message ;
-         mResultStream.clear ;
-         dgStrToStream( mError, mResultStream ) ;
-        end;
+      Try
+       mQuery.SQL.Text := mSQL ;
+       mQuery.Active := True ;
+       CopyStructToMT( TDataSet( mQuery ), mData ) ;
+       CopyAllRecord( TDataSet( mQuery ), mData ) ;
+       dgStrToStream( mData.Base64AllData, mResultStream )  ;
+      Except
+        On E: Exception do
+          begin
+           mError := 'Server Error : ' + E.Message ;
+           mResultStream.clear ;
+           dgStrToStream( mError, mResultStream ) ;
+          end;
+      end;
+    finally
+      mConn.Free ;
+      mQuery.Free ;
+      mData.Free ;
     end;
-  finally
-    mConn.Free ;
-    mQuery.Free ;
-    mData.Free ;
   end;
 end;
 
@@ -536,29 +542,34 @@ begin
   mAlias := dgStreamToStr( mArgsStream ) ;  // The first parameter is string, Alias
   mSQL := dgStreamToStr( mArgsStream ) ; //
   AddLog( 'Client SQL : ' + mSQL, 1 ) ;
-  CreateDBConnection( mConn, mAlias ) ;
-  mQuery := TZQuery.Create( Nil ) ;
-  mQuery.Connection := mConn ;
-  mError := '--' ;
-  mNoOfRowaffected := 0 ;
-  dgStrToStream( mError, mResultStream ) ;
-  Try
+  mError := CreateDBConnection( mConn, mAlias ) ;
+  if mError <> '' then
+    dgStrToStream( mError, mResultStream )
+  else
+    begin
+    mQuery := TZQuery.Create( Nil ) ;
+    mQuery.Connection := mConn ;
+    mError := '--' ;
+    mNoOfRowaffected := 0 ;
+    dgStrToStream( mError, mResultStream ) ;
     Try
-     mQuery.SQL.Text := mSQL ;
-     mQuery.ExecSQL ;
-     mNoOfRowaffected := mQuery.RowsAffected;
-    Except
-      On E: Exception do
-        begin
-         mError := 'Server Error : ' + E.Message ;
-         mResultStream.clear ;
-         dgStrToStream( mError, mResultStream ) ;
-        end;
+      Try
+       mQuery.SQL.Text := mSQL ;
+       mQuery.ExecSQL ;
+       mNoOfRowaffected := mQuery.RowsAffected;
+      Except
+        On E: Exception do
+          begin
+           mError := 'Server Error : ' + E.Message ;
+           mResultStream.clear ;
+           dgStrToStream( mError, mResultStream ) ;
+          end;
+      end;
+    finally
+      dgIntegerToStream( mNoOfRowaffected,mResultStream ) ;
+      mConn.Free ;
+      mQuery.Free ;
     end;
-  finally
-    dgIntegerToStream( mNoOfRowaffected,mResultStream ) ;
-    mConn.Free ;
-    mQuery.Free ;
   end;
 end;
 
@@ -579,34 +590,39 @@ begin
   mLastID := dgStreamToStr( mArgsStream ) ; //
   AddLog( 'Client SQL : ' + mSQL, 1 ) ;
   AddLog( 'Clinet LastID : ' + mLastID, 1 ) ;
-  CreateDBConnection( mConn, mAlias ) ;
-  mQuery := TZQuery.Create( Nil ) ;
-  mQuery.Connection := mConn ;
-  mData := TdgsMemTable.Create( Nil ) ;
-  mError := '--' ;
-  dgStrToStream( mError, mResultStream ) ;
-  Try
+  mError := CreateDBConnection( mConn, mAlias ) ;
+  if mError <> '' then
+    dgStrToStream( mError, mResultStream )
+  else
+    begin
+    mQuery := TZQuery.Create( Nil ) ;
+    mQuery.Connection := mConn ;
+    mData := TdgsMemTable.Create( Nil ) ;
+    mError := '--' ;
+    dgStrToStream( mError, mResultStream ) ;
     Try
-     mQuery.SQL.Text := mSQL ;
-     mQuery.ExecSQL ;
-     // MySQL : select last_insert_id() as id
-     mQuery.SQL.Text := mLastID ;
-     mQuery.Active := True ;
-     CopyStructToMT( TDataSet( mQuery ), mData ) ;
-     CopyAllRecord( TDataSet( mQuery ), mData ) ;
-     dgStrToStream(  mData.Base64AllData, mResultStream )  ;
-    Except
-      On E: Exception do
-        begin
-         mError := 'Server Error : ' + E.Message ;
-         mResultStream.clear ;
-         dgStrToStream( mError, mResultStream ) ;
-        end;
+      Try
+       mQuery.SQL.Text := mSQL ;
+       mQuery.ExecSQL ;
+       // MySQL : select last_insert_id() as id
+       mQuery.SQL.Text := mLastID ;
+       mQuery.Active := True ;
+       CopyStructToMT( TDataSet( mQuery ), mData ) ;
+       CopyAllRecord( TDataSet( mQuery ), mData ) ;
+       dgStrToStream(  mData.Base64AllData, mResultStream )  ;
+      Except
+        On E: Exception do
+          begin
+           mError := 'Server Error : ' + E.Message ;
+           mResultStream.clear ;
+           dgStrToStream( mError, mResultStream ) ;
+          end;
+      end;
+    finally
+      mData.Free ;
+      mConn.Free ;
+      mQuery.Free ;
     end;
-  finally
-    mData.Free ;
-    mConn.Free ;
-    mQuery.Free ;
   end;
 end;
 
@@ -627,32 +643,37 @@ begin
   mParams := TdgsMemTable.Create( nil ) ;
   mParams.Base64AllData := dgStreamToStr( mArgsStream ) ; // The third Paramenter is Parameters
   mData := TdgsMemTable.Create( Nil ) ;
-  CreateDBConnection( mConn, mAlias ) ;
-  mQuery := TZQuery.Create( Nil ) ;
-  mQuery.Connection := mConn ;
-  mError := '--' ;
-  dgStrToStream( mError, mResultStream ) ;
-  Try
+  mError := CreateDBConnection( mConn, mAlias ) ;
+  if mError <> '' then
+    dgStrToStream( mError, mResultStream )
+  else
+    begin
+    mQuery := TZQuery.Create( Nil ) ;
+    mQuery.Connection := mConn ;
+    mError := '--' ;
+    dgStrToStream( mError, mResultStream ) ;
     Try
-     mQuery.SQL.Text := mSQL ;
-     SetQueryParams( mQuery, mParams ) ;
-     mQuery.Active := True ;
-     CopyStructToMT( TDataSet( mQuery ), mData ) ;
-     CopyAllRecord( TDataSet( mQuery ), mData ) ;
-     dgStrToStream(  mData.Base64AllData, mResultStream )  ;
-    Except
-      On E: Exception do
-        begin
-         mError := 'Server Error : ' + E.Message ;
-         mResultStream.clear ;
-         dgStrToStream( mError, mResultStream ) ;
-        end;
+      Try
+       mQuery.SQL.Text := mSQL ;
+       SetQueryParams( mQuery, mParams ) ;
+       mQuery.Active := True ;
+       CopyStructToMT( TDataSet( mQuery ), mData ) ;
+       CopyAllRecord( TDataSet( mQuery ), mData ) ;
+       dgStrToStream(  mData.Base64AllData, mResultStream )  ;
+      Except
+        On E: Exception do
+          begin
+          mError := 'Server Error : ' + E.Message ;
+          mResultStream.clear ;
+          dgStrToStream( mError, mResultStream ) ;
+          end;
+      end;
+    finally
+      mConn.Free ;
+      mQuery.Free ;
+      mData.Free ;
+      mParams.Free ;
     end;
-  finally
-    mConn.Free ;
-    mQuery.Free ;
-    mData.Free ;
-    mParams.Free ;
   end;
 end;
 
@@ -671,34 +692,39 @@ begin
   mArgsStream.Read( mSize, SizeOf( mSize ) ) ;  // Size of Array = 3
   mAlias := dgStreamToStr( mArgsStream ) ;  // The first parameter is string, Alias
   mSQL := dgStreamToStr( mArgsStream ) ; // The secord parameter is the SQL
-  mParams := TdgsMemTable.Create( nil ) ;
-  mParams.Base64AllData := dgStreamToStr( mArgsStream ) ; // The third Base64AllData, Params
-  CreateDBConnection( mConn, mAlias ) ;
-  mQuery := TZQuery.Create( Nil ) ;
-  mQuery.Connection := mConn ;
-  mError := '--' ;
-  mNoOfRowaffected := 0 ;
-  dgStrToStream( mError, mResultStream ) ;
-    Try
+  mError := CreateDBConnection( mConn, mAlias ) ;
+  if mError <> '' then
+    dgStrToStream( mError, mResultStream )
+  else
+    begin
+    mParams := TdgsMemTable.Create( nil ) ;
+    mParams.Base64AllData := dgStreamToStr( mArgsStream ) ; // The third Base64AllData, Params
+    mQuery := TZQuery.Create( Nil ) ;
+    mQuery.Connection := mConn ;
+    mError := '--' ;
+    mNoOfRowaffected := 0 ;
+    dgStrToStream( mError, mResultStream ) ;
       Try
-       mQuery.SQL.Text := mSQL ;
-       SetQueryParams( mQuery, mParams ) ;
-       mQuery.ExecSQL ;
-       mNoOfRowaffected := mQuery.RowsAffected ;
-      Except
+        Try
+        mQuery.SQL.Text := mSQL ;
+        SetQueryParams( mQuery, mParams ) ;
+        mQuery.ExecSQL ;
+        mNoOfRowaffected := mQuery.RowsAffected ;
+        Except
         On E: Exception do
           begin
-           mError := 'Server Error : ' + E.Message ;
-           mResultStream.clear ;
-           dgStrToStream( mError, mResultStream ) ;
+          mError := 'Server Error : ' + E.Message ;
+          mResultStream.clear ;
+          dgStrToStream( mError, mResultStream ) ;
           end;
-      end;
+        end;
     finally
       dgIntegerToStream( mNoOfRowaffected,mResultStream ) ;
       mConn.Free ;
       mQuery.Free ;
       mParams.Free ;
     end;
+  end;
 end;
 
 procedure TTCPMServer.ParamInsertWithLastID(mArgsStream, mResultStream: TMemoryStream);
@@ -716,14 +742,18 @@ begin
   mAlias := dgStreamToStr( mArgsStream ) ;  // The first parameter is string, Alias
   mSQL := dgStreamToStr( mArgsStream ) ; // The secord parameter is the SQL
   mLastID := dgStreamToStr( mArgsStream ) ;
-  mParams := TdgsMemTable.Create( nil ) ;
-  mParams.Base64AllData := dgStreamToStr( mArgsStream ) ; // The 4th Base64AllData, Params
-  CreateDBConnection( mConn, mAlias ) ;
-  mQuery := TZQuery.Create( Nil ) ;
-  mQuery.Connection := mConn ;
-  mData := TdgsMemTable.Create( Self ) ;
-  mError := '--' ;
-  dgStrToStream( mError, mResultStream ) ;
+  mError := CreateDBConnection( mConn, mAlias ) ;
+  if mError <> '' then
+    dgStrToStream( mError, mResultStream )
+  else
+    begin
+    mParams := TdgsMemTable.Create( nil ) ;
+    mParams.Base64AllData := dgStreamToStr( mArgsStream ) ; // The 4th Base64AllData, Params
+    mQuery := TZQuery.Create( Nil ) ;
+    mQuery.Connection := mConn ;
+    mData := TdgsMemTable.Create( Self ) ;
+    mError := '--' ;
+    dgStrToStream( mError, mResultStream ) ;
     Try
       Try
        mQuery.SQL.Text := mSQL ;
@@ -748,6 +778,7 @@ begin
       mQuery.Free ;
       mParams.Free ;
     end;
+    end;
 end;
 
 function TTCPMServer.ErrorData(mMsg: String): String;
@@ -765,7 +796,7 @@ begin
   MT.Free ;
 end;
 
-procedure TTCPMServer.CreateDBConnection(var mConn: TZConnection; mAlias: String );
+function TTCPMServer.CreateDBConnection(var mConn: TZConnection; mAlias: String ) : String ;
 var
   mDB,mHost,mUser,mPass,mType,mStr,mLast,mLibPath,mCodePage : String ;
   mPort : Integer ;
@@ -777,7 +808,7 @@ begin
   mTemp := TStringList.Create ;
   EnterCriticalSection( DBCS ) ;
   Try
-    if not WAlias.Locate( 'alias',UpperCase( mAlias ),[] ) then AddLog( 'CreateDBConnection: pAlias.Locate Error : ' + mAlias, 3 ) ;
+    if not WAlias.Locate( 'alias',UpperCase( mAlias ),[] ) then AddLog( 'CreateDBConnection: pAlias.Locate Error : ' + mAlias, 1 ) ;
     mDB := WAlias.FieldByName( 'database' ).AsString ;
     mHost := WAlias.FieldByName( 'host' ).AsString ;
     mUser := WAlias.FieldByName( 'user' ).AsString ;
@@ -791,41 +822,54 @@ begin
   finally
     LeaveCriticalSection( DBCS ) ;
   end;
-  mConn := TZConnection.Create( Self ) ;
-  mConn.Database := mDB ;
-  mConn.HostName := mHost ;
-  mConn.User := mUser ;
-  mConn.Password := mPass ;
-  mConn.Protocol := mType ;
-  mConn.Port := mPort ;
-  mConn.LibraryLocation := mLibPath ;
-  if UpperCase( mCodePage ) = 'UTF8' then
-    mConn.ControlsCodePage := cCP_UTF8 ;
-  if UpperCase( mCodePage ) = 'UTF16' then
-    mConn.ControlsCodePage := cCP_UTF16 ;
-  mConn.Connect ;
-  mQuery := TZQuery.Create( nil ) ;
-  mQuery.Connection := mConn ;
-  mCount := mAllSQL.Count ;
-  for i := 0 to mCount - 1 do
+  // Check for the libPath
+  if FileExists( mLibPath ) then
     begin
-    mStr := Trim( mAllSQL.Strings[ i ] ) ;
-    if mStr <> '' then
-      mTemp.Add( mStr ) ;
-    mLast := Copy( mStr, Length( mStr ) , 1 ) ;
-    if mLast = ';' then
-      begin
-      mQuery.SQL.Text := mTemp.Text ;
-      mQuery.ExecSQL ;
-      mTemp.Clear ;
-      end;
-    end;
-  if Trim( mTemp.Text ) <> '' then
+    Result := '' ;
+    mConn := TZConnection.Create( Self ) ;
+    mConn.Database := mDB ;
+    mConn.HostName := mHost ;
+    mConn.User := mUser ;
+    mConn.Password := mPass ;
+    mConn.Protocol := mType ;
+    mConn.Port := mPort ;
+    mConn.LibraryLocation := mLibPath ;
+    if UpperCase( mCodePage ) = 'UTF8' then
+      mConn.ControlsCodePage := cCP_UTF8 ;
+    if UpperCase( mCodePage ) = 'UTF16' then
+      mConn.ControlsCodePage := cCP_UTF16 ;
+    mConn.Connect ;
+    mQuery := TZQuery.Create( nil ) ;
+    Try
+      mQuery.Connection := mConn ;
+      mCount := mAllSQL.Count ;
+      for i := 0 to mCount - 1 do
+        begin
+        mStr := Trim( mAllSQL.Strings[ i ] ) ;
+        if mStr <> '' then
+          mTemp.Add( mStr ) ;
+        mLast := Copy( mStr, Length( mStr ) , 1 ) ;
+        if mLast = ';' then
+          begin
+          mQuery.SQL.Text := mTemp.Text ;
+          mQuery.ExecSQL ;
+          mTemp.Clear ;
+          end;
+        end;
+      if Trim( mTemp.Text ) <> '' then
+        begin
+        mQuery.SQL.Text := mTemp.Text ;
+        mQuery.ExecSQL ;
+        end;
+    finally
+      mQuery.Free ;
+    end ;
+    end
+  else
     begin
-    mQuery.SQL.Text := mTemp.Text ;
-    mQuery.ExecSQL ;
+    Result := 'DB Client Lib : ' + mLibPath + '  not found !' ;
+    AddLog( Result, 1 ) ;
     end;
-  mQuery.Free ;
   mTemp.Free ;
   mAllSQL.Free ;
 end;
@@ -906,6 +950,11 @@ begin
     if pLogLevel >= mLevel then
       pLogMessage( mMessage ) ;
     end;
+end;
+
+function TTCPMServer.ServerVersion: String;
+begin
+  Result :=  SERVER_VERSION ;
 end;
 
 end.
