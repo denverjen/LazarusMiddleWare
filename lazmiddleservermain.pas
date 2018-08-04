@@ -11,7 +11,7 @@ interface
 
 uses
   Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, ComCtrls,
-  StdCtrls, ExtCtrls, DBGrids, tcpmwserver, db, tcpmwclient, LCL,
+  StdCtrls, ExtCtrls, DBGrids, db, tcpmwclient, LCL,
   dbcommon, lazutf8 ;
 
 type
@@ -19,7 +19,6 @@ type
   { TFmtMain }
 
   TFmtMain = class(TForm)
-    Button1: TButton;
     Button10: TButton;
     Button11: TButton;
     Button12: TButton;
@@ -69,7 +68,6 @@ type
     MT : TdgsMemTable ;
   public
     { public declarations }
-    mServer : TTCPMServer ;
     mClient : Ttcpmclient ;
   end;
 
@@ -84,21 +82,13 @@ implementation
 
 procedure TFmtMain.FormCreate(Sender: TObject);
 begin
-  mServer := TTCPMServer.Create( Self ) ;
-  mServer.pExePath := ExtractFilePath(  ParamStr( 0 )  ) ;
-  mServer.pLogMessage := @LogMessage ;
-  mServer.pLogMode := True ;
-  mServer.pLogLevel := 5 ; // All Log
-  mServer.pPort := 6999 ; // Server Port ;
-  mServer.SetAlias( 'testdb','mysqld-5','127.0.0.1','testrun','testpass','horse','utf8','',
-                    '/usr/lib/x86_64-linux-gnu/libmysqlclient.so.20.3.10','testpath','uusdfsd',3306 ) ;
   mClient := Ttcpmclient.Create( Self ) ;
   MT := TdgsMemTable.Create( Self ) ;
  end;
 
 procedure TFmtMain.Button1Click(Sender: TObject);
 begin
-  mServer.StartServer ;
+
 end;
 
 procedure TFmtMain.Button10Click(Sender: TObject);
@@ -306,7 +296,6 @@ procedure TFmtMain.FormDestroy(Sender: TObject);
 begin
   MT.Free ;
   mClient.Free ;
-  mServer.Free ;
 end;
 
 procedure TFmtMain.LogMessage(mMsg: String);

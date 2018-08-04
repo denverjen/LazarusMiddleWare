@@ -3,7 +3,7 @@ object FmtMain: TFmtMain
   Height = 647
   Top = 167
   Width = 1241
-  Caption = 'LazMiddleware'
+  Caption = 'LazMiddleware for version > 0.2.31 please start the standalone server first'
   ClientHeight = 647
   ClientWidth = 1241
   OnCreate = FormCreate
@@ -51,77 +51,68 @@ object FmtMain: TFmtMain
       ClientHeight = 151
       ClientWidth = 1239
       TabOrder = 0
-      object Button1: TButton
-        Left = 12
-        Height = 25
-        Top = 12
-        Width = 207
-        Caption = 'Start Server'
-        OnClick = Button1Click
-        TabOrder = 0
-      end
       object Button2: TButton
-        Left = 384
+        Left = 16
         Height = 25
-        Top = 12
+        Top = 20
         Width = 207
         Caption = 'Client Test-Connect'
         OnClick = Button2Click
-        TabOrder = 1
+        TabOrder = 0
       end
       object Button3: TButton
-        Left = 384
+        Left = 16
         Height = 25
-        Top = 40
+        Top = 48
         Width = 207
         Caption = 'Client Test - SelectSQL'
         OnClick = Button3Click
-        TabOrder = 2
+        TabOrder = 1
       end
       object Button4: TButton
-        Left = 616
+        Left = 248
         Height = 25
-        Top = 40
+        Top = 48
         Width = 208
         Caption = 'Client Test - ExecSQL (10)'
         OnClick = Button4Click
-        TabOrder = 3
+        TabOrder = 2
       end
       object Button5: TButton
-        Left = 848
+        Left = 480
         Height = 25
-        Top = 40
+        Top = 48
         Width = 200
         Caption = 'Client Test - ExecSQL (1)'
         OnClick = Button5Click
-        TabOrder = 4
+        TabOrder = 3
       end
       object Button6: TButton
-        Left = 384
+        Left = 16
         Height = 25
-        Top = 72
+        Top = 80
         Width = 351
         Caption = 'Client Test - Select SQL with Parameters'
         OnClick = Button6Click
-        TabOrder = 5
+        TabOrder = 4
       end
       object Button7: TButton
-        Left = 384
+        Left = 16
         Height = 25
-        Top = 104
+        Top = 112
         Width = 352
         Caption = 'Client Test - ExecSQL with Parameters'
         OnClick = Button7Click
-        TabOrder = 6
+        TabOrder = 5
       end
       object Button18: TButton
-        Left = 616
+        Left = 248
         Height = 25
-        Top = 12
+        Top = 20
         Width = 203
         Caption = 'Cleint Disconnect'
         OnClick = Button18Click
-        TabOrder = 7
+        TabOrder = 6
       end
     end
     object DBGrid1: TDBGrid
